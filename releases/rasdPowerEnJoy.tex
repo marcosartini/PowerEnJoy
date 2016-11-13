@@ -1,0 +1,1487 @@
+%Copyright 2014 Jean-Philippe Eisenbarth
+%This program is free software: you can 
+%redistribute it and/or modify it under the terms of the GNU General Public 
+%License as published by the Free Software Foundation, either version 3 of the 
+%License, or (at your option) any later version.
+%This program is distributed in the hope that it will be useful,but WITHOUT ANY 
+%WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+%PARTICULAR PURPOSE. See the GNU General Public License for more details.
+%You should have received a copy of the GNU General Public License along with 
+%this program.  If not, see <http://www.gnu.org/licenses/>.
+
+%Based on the code of Yiannis Lazarides
+%http://tex.stackexchange.com/questions/42602/software-requirements-specification-with-latex
+%http://tex.stackexchange.com/users/963/yiannis-lazarides
+%Also based on the template of Karl E. Wiegers
+%http://www.se.rit.edu/~emad/teaching/slides/srs_template_sep14.pdf
+%http://karlwiegers.com
+\documentclass{scrreprt}
+\usepackage{listings}
+\usepackage{underscore}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+%\usepackage[bookmarks=true]{hyperref}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{url}
+
+\hypersetup{
+    bookmarks=false,    % show bookmarks bar?
+    pdftitle={Software Requirement Specification},    % title
+    pdfauthor={Marco Sartini, Daniele Riva},                     % author
+    pdfsubject={Power EnJoy},                        % subject of the document
+    pdfkeywords={software engineering, car, power, project}, % list of keywords
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,       % color of internal links
+    citecolor=black,       % color of links to bibliography
+    filecolor=black,        % color of file links
+   % urlcolor=purple,        % color of external links
+    linktoc=page            % only page is linked
+}%
+\def\myversion{1.0 }
+\def\version{1.0}
+%\date{28/10/2016}
+\titlehead{\centering\includegraphics[width=6cm]{Logo_Politecnico_Milano.png}}
+\title{Requirements Analysis and Software Design\\for\\PowerEnJoy}
+\date{\today\\\bigskip version \version}
+\author{Daniele Riva\thanks{matr. 875154}\and Marco Sartini\thanks{matr. 877979}}
+\usepackage{hyperref}
+\begin{document}
+\pagestyle{headings}
+\maketitle
+
+\begin{comment}
+\begin{flushright}
+    \rule{16cm}{5pt}\vskip1cm
+    \begin{bfseries}
+        \Huge{SOFTWARE REQUIREMENTS\\ SPECIFICATION}\\
+        \vspace{1.9cm}
+        for\\
+        \vspace{1.9cm}
+        Power EnJoy\\
+        \vspace{1.5cm}
+        \LARGE{Version \myversion approved}\\
+        \vspace{1.5cm}
+        Prepared by\\Marco Sartini (877979) and Daniele Riva (875154)\\
+        \vspace{1.5cm}
+        Politecnico di Milano\\
+        \vspace{1.9cm}
+        \today\\
+    \end{bfseries}
+\end{flushright}
+\end{comment}
+
+\tableofcontents
+
+
+\chapter*{Revision History}
+
+\begin{center}
+    \begin{tabular}{lccc}
+        \toprule
+	   \textbf{ Name }& \textbf{ Date  }& \textbf{ Reason For Changes }& \textbf{ Version}\\
+        \midrule
+	    Marco + Daniele & 28/10/2016 & Starting & 1.0\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+
+\chapter{Introduction}
+
+\section{Purpose}
+Power EnJoy is a digital management system for a car-sharing service that exclusively employs electric cars.
+The system provides the basics car-sharing services plus other functionalities listed in this document.
+This is a full new system to be develop. This document describes all the parts of the system. 
+\begin{comment}$<$Identify the product whose software requirements are specified in this 
+document, including the revision or release number. Describe the scope of the 
+product that is covered by this SRS, particularly if this SRS describes only 
+part of the system or a single subsystem.$>$
+\end{comment}
+
+\section{Document Conventions}
+In this document we will use the italic style when a specific concept is expressed with more than a single word.
+This document follows the IEEE standard about Software Requirements Specification. In particular it complies to:
+\begin{itemize}
+\item IEEE Standard for RASD Adapted from ISO/IEC/IEEE 29148 dated December 2011;
+\item IEEE Std 830, IEEE Recommended Practice for Software Requirements Specifications;
+\item IEEE Std 1233, IEEE Guide for Developing System Requirements Specifications;
+\end{itemize}.
+\begin{comment}$<$Describe any standards or typographical conventions that were followed when 
+writing this SRS, such as fonts or highlighting that have special significance.  
+For example, state whether priorities  for higher-level requirements are assumed 
+to be inherited by detailed requirements, or whether every requirement statement 
+is to have its own priority.$>$
+\end{comment}
+
+\section{Intended Audience and Reading Suggestions}
+This document is written with the purpose of specify the requirements of the project. 
+This document is intended for users, developers, project managers and testers.
+Reading this document in its printed sequence will guarantee the best experience and understanding.
+Before proceed, please be sure to appreciate the proper meaning of special words listed in the \hyperref[sec:glossary]{Appendix A: Glossary}.
+\begin{comment}$<$Describe the different types of reader that the document is intended for, 
+such as developers, project managers, marketing staff, users, testers, and 
+documentation writers. Describe what the rest of this SRS contains and how it is 
+organized. Suggest a sequence for reading the document, beginning with the 
+overview sections and proceeding through the sections that are most pertinent to 
+each reader type.$>$
+\end{comment}
+
+\section{Project Scope}
+In the era of sharing economy, a noticeable sector is the one related to cars.
+The digital management system \emph{Power EnJoy} will be a useful system for shared electric cars users that will manage to book, pick up, drive and pay an available car in a city where the company will operate.
+\begin{comment}$<$Provide a short description of the software being specified and its purpose, 
+including relevant benefits, objectives, and goals. Relate the software to 
+corporate goals or business strategies. If a separate vision and scope document 
+is available, refer to it rather than duplicating its contents here.$>$
+\end{comment}
+
+\section{References}
+This SRS refers to the assignment provided by the Software Engineering 2 professors available on the private BeeP platform at Polimi and also in the GitHub repository \url{http://github.com/marcosartini/PowerEnJoy} as "Assignments AA 2016-2017.pdf"
+Other specifications may be found at the BeeP Forum in the project section.
+\begin{comment}$<$List any other documents or Web addresses to which this SRS refers. These may 
+include user interface style guides, contracts, standards, system requirements 
+specifications, use case documents, or a vision and scope document. Provide 
+enough information so that the reader could access a copy of each reference, 
+including title, author, version number, date, and source or location.$>$
+\end{comment}
+
+\chapter{Overall Description}
+
+\section{Product Perspective}
+The system shown in this paper will implement an infrastructure that allows the company to care of its own cars, knowing where they are and their state. On the user side, this system allows the user to become a user, and allows a user to book a car in the location he prefer, it allows him to pick up the reserved car, have a trip, release the car and it will also take care of billing the user.
+\begin{comment}$<$Describe the context and origin of the product being specified in this SRS.  
+For example, state whether this product is a follow-on member of a product 
+family, a replacement for certain existing systems, or a new, self-contained 
+product. If the SRS defines a component of a larger system, relate the 
+requirements of the larger system to the functionality of this software and 
+identify interfaces between the two. A simple diagram that shows the major 
+components of the overall system, subsystem interconnections, and external 
+interfaces can be helpful.$>$
+\end{comment}
+
+\section{Product Functions}
+The goals of the system are better specified in separated sections belonging one the client-side and one the company-side.
+\subsection{Client-side}
+The system, related to the client:
+\begin{enumerate} [label=G\arabic*., start=1]
+\item Allows potential users to sign up the system (information, credential and payments data); 
+\item Allows users to sign in and use the system;
+\item Allows users to find the locations of available cars near their own current position or near a specified address;
+\item Allows users to book a car for up one hour in advance to pick it up;
+\item Allows users to tell the system they are nearby the car;
+\item Allows a user to see the amount of his current ride through a screen on the car;
+\item Allows users to notify the system a problem related to the car;
+\item Allows users to keep aside their car for a little time (max 3 hours, under specific payment);
+\end{enumerate}
+
+\subsection{Company-side}
+The system, related to the company:
+
+\begin{enumerate} [label=G\arabic*., resume]
+\item Allows to compute the amount of each user's ride [starts debit, stops debit, discount];
+\item Allows to manage the opening and closing of the cars;
+\item Allows to stimulate the users' virtuous behaviors applying discounts on their last ride as and deter the malicious of the users applying extra fees as stated in the business rule section (see \vref{sec:business});
+\item Allows to check the status of the cars as a prospectus/summary;
+\item Allows the company to be notified if any {\itshape on-board system} detects a car failure;
+\item Allows to edit settings such as prices per minute, discounts amount, “etc.”;
+\item Allows the company to bill users for services they benefited.
+\end{enumerate}
+
+\begin{comment}$<$Summarize the major functions the product must perform or must let the user perform. Details will be provided in Section 3, so only a high level summary 
+(such as a bullet list) is needed here. Organize the functions to make them 
+understandable to any reader of the SRS. A picture of the major groups of 
+related requirements and how they relate, such as a top level data flow diagram 
+or object class diagram, is often effective.$>$
+\end{comment}
+
+\section{User Classes and Characteristics}
+This system will be used by the people who intend to drive a rented electric car, by the employee of the company and by the management of the company.
+\begin{description}
+\item [user] client of the company, he provide his own data, he request a rental;
+\item [maintenance employee] take care of problems, of discharged cars, etc;
+\item [management employee] watch maps of the cities crowded of cars, checks revenue, etc.
+\item [payment handler] it is in charge of collecting the amounts for services the user benefited. The company communicate it the debit of the service and it takes care of collect it, giving feedback of the outcome. It is his duty to insist to get the amount due, even proceeding to court.
+\end{description}
+\begin{comment}$<$Identify the various user classes that you anticipate will use this product.  
+User classes may be differentiated based on frequency of use, subset of product 
+functions used, technical expertise, security or privilege levels, educational 
+level, or experience. Describe the pertinent characteristics of each user class.  
+Certain requirements may pertain only to certain user classes. Distinguish the 
+most important user classes for this product from those who are less important 
+to satisfy.$>$
+\end{comment}
+
+\section{Operating Environment}
+\begin{comment}$<$Describe the environment in which the software will operate, including the hardware platform, operating system and versions, and any other software 
+components or applications with which it must peacefully coexist.$>$
+\end{comment}
+
+\section{Design and Implementation Constraints}
+The mobile functionality is inherent in the definition of the business, because the cars are moving, and users want to have the service immediately when they need it, wherever they are, without having to forcibly use a desktop computer from their office. Therefore, a mobile application developed for the majors mobile OS is required (at the moment they are Google Android and Apple iOS). Other users with different operating systems should be however able to interact with \emph{Power EnJoy} using a browser and surfing the website version of the interface.
+Both interface versions only work if supported by a running Internet connection.
+At the moment, the most widespread technology for geolocalization is GPS.
+It is extremely required that the system supports the simultaneous interaction of different users with it.
+
+\subsection{Regulatory policies}
+Authorization to access the location should be granted by the user to the system, in order to comply privacy laws. Denied authorization implies the user manually enter an address when required by the system.
+
+\begin{comment}$<$Describe any items or issues that will limit the options available to the 
+developers. These might include: corporate or regulatory policies; hardware 
+limitations (timing requirements, memory requirements); interfaces to other 
+applications; specific technologies, tools, and databases to be used; parallel 
+operations; language requirements; communications protocols; security 
+considerations; design conventions or programming standards (for example, if the 
+user's organization will be responsible for maintaining the delivered software).$>$
+\end{comment}
+
+\section{User Documentation}
+The user will find a dedicated section in the website and in the application devoted to explanation of the functionalities of the system, so he will be able to proper operate.
+Will be also provided a manual reserved to the company-side, to show how to use the system.
+\begin{comment}$<$List the user documentation components (such as user manuals, on-line help, 
+and tutorials) that will be delivered along with the software. Identify any 
+known user documentation delivery formats or standards.$>$
+\end{comment}
+
+\section{Assumptions and Dependencies}
+\subsection{Text Assumption}
+\begin{enumerate} [label=TA\arabic*., start=1]
+\item System is based on a mobile application and web site to interact with users who want to use \emph{Power EnJoy} services;
+\item A part of the system, called "on-board system" is mounted on every car and is the bridge between the central system and the client system;
+\item We assume that passengers hop on and off the same way the driver.
+\item We assume that the system generates a specific code when a user wants to tell the system he is nearby his requested car;
+\item We assume that payment management is entrusted to a third party company, that receives withdrawal requests from our company;
+\item We assume that a fine attributable to a user broken law is paid by the company and the company will force a refund by the user;
+\item We assume that the management of procedures in case of accidents, damage to cars, disputes are handled by third party company and don't affect our system;
+\item This is a brand new business, therefore no legacy system exists;
+\item We assumed that discounts are not combinable;
+\item We assume that the system checks the correct spelling of the data sent by the user in the registration step, inter alia: CF, driver license, payment data;
+\item We assume that if a car is plugged into a power grid station within 4 (four) minutes since a rental is over, the action is due to the user who last rented the car;
+
+\end{enumerate}
+
+\subsection{Domain properties}
+
+\begin{enumerate} [label=D\arabic*., start=1]
+\item All the position detector system always give the right position;
+\item The position detector transceiver of the cars cannot be switched off, unless the car is out of order;
+\item All cars are registered in the system;
+\item When a new car is acquired by the company, the car is being registered in the system;
+\item When a car is out of order, the car is being removed from the system;
+\item Cars are equipped with a display able to receive data to show;
+\item The number of passengers is always nonnegative and less than the capacity of the car;
+\item A booked car has only one user and one driver a time;
+\item Identifying document and driver license of a user are verified by the company autonomously;
+\item The geographical positions of the power grid stations are known;
+\item The geographical positions of the safe areas are known;
+\item Cars are equipped with a device able to determine the number of passengers, and also able to make accessible/communicate that number;
+\item Cars are equipped with a device able to determinate the level of charge of the battery, and also able to make accessible/communicate that level;
+\item Cars are equipped with a device able to determinate the engine starts up and when it stops, and is also able to make accessible/communicate these events;
+\item Cars are equipped with a device able to lock and unlock the car afterwards the receiving of the respective command;
+\item Cars are equipped with a control unit able to communicate any mechanical and electric failure;
+\item All data provided by the sensors listed here above of each car are exact.
+\end{enumerate}
+
+\begin{comment}$<$List any assumed factors (as opposed to known facts) that could affect the 
+requirements stated in the SRS. These could include third-party or commercial 
+components that you plan to use, issues around the development or operating 
+environment, or constraints. The project could be affected if these assumptions 
+are incorrect, are not shared, or change. Also identify any dependencies the 
+project has on external factors, such as software components that you intend to 
+reuse from another project, unless they are already documented elsewhere (for 
+example, in the vision and scope document or the project plan).$>$
+\end{comment}
+
+
+\chapter{External Interface Requirements}
+
+\section{User Interfaces}
+\begin{comment}$<$Describe the logical characteristics of each interface between the software 
+product and the users. This may include sample screen images, any GUI standards 
+or product family style guides that are to be followed, screen layout 
+constraints, standard buttons and functions (e.g., help) that will appear on 
+every screen, keyboard shortcuts, error message display standards, and so on.  
+Define the software components for which a user interface is needed. Details of 
+the user interface design should be documented in a separate user interface 
+specification.$>$
+\end{comment}
+
+\section{Hardware Interfaces}
+\begin{comment}$<$Describe the logical and physical characteristics of each interface between 
+the software product and the hardware components of the system. This may include 
+the supported device types, the nature of the data and control interactions 
+between the software and the hardware, and communication protocols to be 
+used.$>$
+\end{comment}
+
+\section{Software Interfaces}
+\begin{comment}$<$Describe the connections between this product and other specific software 
+components (name and version), including databases, operating systems, tools, 
+libraries, and integrated commercial components. Identify the data items or 
+messages coming into the system and going out and describe the purpose of each.  
+Describe the services needed and the nature of communications. Refer to 
+documents that describe detailed application programming interface protocols.  
+Identify data that will be shared across software components. If the data 
+sharing mechanism must be implemented in a specific way (for example, use of a 
+global data area in a multitasking operating system), specify this as an 
+implementation constraint.$>$
+\end{comment}
+
+\section{Communications Interfaces}
+\begin{comment}$<$Describe the requirements associated with any communications functions 
+required by this product, including e-mail, web browser, network server 
+communications protocols, electronic forms, and so on. Define any pertinent 
+message formatting. Identify any communication standards that will be used, such 
+as FTP or HTTP. Specify any communication security or encryption issues, data 
+transfer rates, and synchronization mechanisms.$>$
+\end{comment}
+
+
+\chapter{System Features}
+This section is organized analyzing the functional requirements in system features.
+\begin{comment}$<$This template illustrates organizing the functional requirements for the 
+product by system features, the major services provided by the product. You may 
+prefer to organize this section by use case, mode of operation, user class, 
+object class, functional hierarchy, or combinations of these, whatever makes the 
+most logical sense for your product.$>$
+\end{comment}
+
+\section{Client registration}
+\begin{comment}$<$Don’t really say “System Feature 1.” State the feature name in just a few 
+words.$>$
+\end{comment}
+
+\subsection{Description and Priority}
+The client registration represents the act of the subscription by the potential user to the system. He will provides all the information as:
+
+\begin{itemize}
+\item Name;
+\item Surname;
+\item Number of driver license;
+\item CF;
+\item e-mail address;
+\item Payment data (C/C or debit card or credit card or ''anything else'');
+\item Billing data;
+\end{itemize}
+
+A user is not allowed to sign up while he is yet signed up as the same physical/real person. 
+The system, in case of positive registration, will communicate a password to the user, needed to sign in.
+The password will be generated in a consistence way to obtain a safe key (see \vref{sec:security})
+This feature is fully required.
+\begin{comment}$<$Provide a short description of the feature and indicate whether it is of 
+High, Medium, or Low priority. You could also include specific priority 
+component ratings, such as benefit, penalty, cost, and risk (each rated on a 
+relative scale from a low of 1 to a high of 9).$>$
+\end{comment}
+
+\subsection{Stimulus/Response Sequences}
+Potential user may register inserting his information in the form of the application or the website.
+
+\subsubsection{Use case}
+
+The use case related to this feature (see diagram \vref{fig:usecases}) is shown in the following table:
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Registration\\
+\midrule
+Actors & Potential user\\
+\midrule
+Entry conditions & ---\\
+\midrule
+Flow of events & A potential user, to become a user, has to enter in the registration form on the application or website and insert his personal information (name, surname, cf, mail, code account and driver license). If information are correct and user is not already registered, he receives a password to login in the system and a notification that confirms his registration.\\
+\midrule
+Exit conditions & System generates a password for the new user and add his in its database.\\
+\midrule
+Exceptions & Information submitted by the user are not correct or the user is already registered. System rejects the registration request and notifies the user about.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsubsection{Sequence diagram}
+Here a representation of the events that are involved in the step of registration.
+\begin{center}
+\includegraphics[height=\textheight]{SDRegistration.pdf}
+\end{center}
+
+\begin{comment}$<$List the sequences of user actions and system responses that stimulate the 
+behavior defined for this feature. These will correspond to the dialog elements 
+associated with use cases.$>$
+\end{comment}
+
+\subsection{Functional Requirements}
+
+\begin{enumerate}[label=R\arabic*., start=1]
+\item System "should/is able to" check if a person has already been registered;
+\item System should register a person only if he/she is not already been registered;
+\item System should verify if driver license information are valid and correct;
+\item System should verify if payment information are valid and correct;
+\item System should register a person only if all provided data are correct;
+\item System should generate and send a password to the user only if the registration is allowed;
+\end{enumerate}
+
+\begin{comment}$<$Itemize the detailed functional requirements associated with this feature.  
+These are the software capabilities that must be present in order for the user 
+to carry out the services provided by the feature, or to execute the use case.  
+Include how the product should respond to anticipated error conditions or 
+invalid inputs. Requirements should be concise, complete, unambiguous, 
+verifiable, and necessary. Use “TBD” as a placeholder to indicate when necessary 
+information is not yet available.$>$
+\end{comment}
+
+\begin{comment}$<$Each requirement should be uniquely identified with a sequence number or a 
+meaningful tag of some kind.$>$
+
+REQ-1:	REQ-2:
+\end{comment}
+
+\section{Signing in and usage of the system}
+\subsection{Description and Priority}
+This feature allows the user to sign in the system and be able to request the services.
+The user should identify himself by the e-mail and password associated to him by the system.
+(The e-mail inserted in the registration step and the password provided by the system.)
+
+\subsection{Stimulus/Response Sequences}
+A registered user has to sign in the system providing e-mail and password (see diagram \vref{fig:usecases}).
+%\begin{table}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Login\\
+\midrule
+Actors & Registered user (user)\\
+\midrule
+Entry conditions & User must be registered in the system\\
+\midrule
+Flow of events & The user enters the application or the website and provides, in a dedicated form, the e-mail submitted at the registration step and his associated password. Systems checks for e-mail and password. If the data are correct, the user becomes authenticated.\\
+\midrule
+Exit conditions & The user is signed in the system and he is allowed to use the company services.\\
+\midrule
+Exceptions & Data submitted correspond with no registered user. System rejects sining in. User is notified of that.\\
+\bottomrule
+\end{tabularx}
+%\end{table}
+\end{center}
+
+\subsection{Functional Requirements}
+
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should be able to verify if user's password is correct;
+\item System should only let user sign in if the password and the e-mail are correct (=well-spelled and associated to that user);
+\item user can use company services only if he is logged on to the system.
+\end{enumerate}
+
+\section{Searching for a car}
+\subsection{Description and Priority}
+Providing a location in the environment, the system has to show the cars available in a provided distance. The cars available can be located in parkings (actually safe areas), plugged or unplugged to a power grid station, that are available for the reservation for the rental.
+This feature is essential for the way the system is thought.
+\subsection{Stimulus/Response Sequences}
+\subsubsection{Use case}
+An authenticated user may wish to find a car near his position or near a certain address (see diagram \vref{fig:usecases}).
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Find available car\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & --- (User authenticated, ma lo è per forza dallo usecase)\\
+\midrule
+Flow of events & User selects the way to locate the center of the circle where to search for available cars: by writing an address or by providing his geographical location (e.g. with GPS). System locates on a \emph{user side map} the available cars in the requested area and let the user select the desired car. Pin on the map contains level of battery information for every car.\\
+\midrule
+Exit conditions & After user selects a car, system shows 2 possible actions: reserve the selected car or start immediately  a rental.\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsubsection{Sequence diagram}
+Here a representation of the events that are involved in the step of choosing a car.
+\begin{center}
+\includegraphics[width=\columnwidth]{SDChooseCar.pdf}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System must be able to know user's position;% --- thank to his smartphone GPS;
+\item System must be able to know the position of the car;% --- thank to the car GPS;
+\item System must be able to identify a specified address.% --- thank to RIVEDERE a map service like {\itshape Google Maps} or "equivalent";
+\item System must be able to show the state (location and battery charge level) of all the available cars near (1 Km) the user's position;
+\item System should let the user select a car to be used in the services.
+\end{enumerate}
+
+\section{Rental reservation}
+\subsection{Description and Priority}
+This is the key feature of the system, probably the most used one. An authenticated user can choose a car as in the previous feature, and then he requires the reservation. Therefore the system has to reserve the car required, confirm the reservation, start the timer that measure one hour from the reservation...
+\subsection{Stimulus/Response Sequences}
+\subsubsection{Use case}
+
+ (see diagram \vref{fig:usecases})
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Reserve a car\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & A car has to be previously selected (read "Coming from \emph{Searching for a car}")\\
+\midrule
+Flow of events & The user decides to reserve the selected car, so he let it be known to the system. The reservation expires within 1 (one) hour.\\
+\midrule
+Exit conditions & The reserved car is marked as unavailable to other reservations in the next hour.\\
+\midrule
+Exceptions & If the car is being selected by another user who more rapidly complete the reservation request, the selected car results unavailable, and the user is redirect to the selection step.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsubsection{Sequence diagram}
+\begin{center}
+\includegraphics[width=\columnwidth]{SDReservation.pdf}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item user can book only one car a time;
+\item user can book for rental at most one car in a defined period of time (six hours) without pick it up;
+\item user can choose the car to be booked (see previous goal);
+\item System should make a (the booked) car unavailable for other rental requests;
+\item System should notify a confirmation of reservation to the user;
+\end{enumerate}
+
+\section{Proximity to the car}
+\label{sec:proximity}
+\subsection{Description and Priority}
+The user, in the moment he wants to pick up the reserved car, will communicate with the system to manifest his nearness to the reserved car. So the system, stated the proximity, could continue with the other tasks such as unlock the car, stop the timer and so on as seen in the other goals/features.
+This feature requires special care on the security aspect as described in the non -functional section of this document (see \vref{sec:security}) .
+\subsection{Stimulus/Response Sequences}
+\subsubsection{Use case}
+
+(see diagram \vref{fig:usecases})
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Start a rental and notify proximity at the car\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & A car has to be previously selected or reserved\\
+\midrule
+Flow of events & A user is ready to start a rental, so he notify the system he is nearby the car. The system provide the user a way to unlock the car (eg. a QR code, a NFC tag). The user interacts with the car reader and get the car unlocked, so he can enter and start driving.\\
+\midrule
+Exit conditions & The car is unlocked\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsubsection{Sequence diagram}
+Here a representation of the events that are involved in the step of unlocking a car and start driving.
+\begin{center}
+\includegraphics[width=\columnwidth]{SDStartRide.pdf}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+%\item System should use NFC technology to unlock the car if user's smartphone has NFC; otherwise user must insert a PIN to unlock the car and system verifies if PIN is correct and if user is near the car using GPS;
+%\item All cars should have NFC technology;
+%\item System should generate a different PIN code for each reservation and it is able to verify if the PIN inserted by user is correct;
+%\item user can unlock the car only after he receives PIN or NFC "signal" to use.
+\item System should provide a way to receive the proximity information from the user;
+\item System should be able to analyze the proximity information and check for truth;
+\item System should acknowledge the user if the check fails.
+
+\end{enumerate}
+
+\section{Monitoring ride costs}
+\subsection{Description and Priority}
+A user seems to like to know how much is the amount to pay in real time. So the system will show the amount of the ride up to date, "minute after minute".
+This cost will represent only the time-affected fraction of the price, so without any discount nor extra-fees.
+ 
+\subsection{Stimulus/Response Sequences}
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should be able to notify the amount of the ride to the user;
+\item System should be able to compute the amount of the ride;
+\end{enumerate}
+
+\section{Keeping aside a car}
+\subsection{Description and Priority}
+It is possible that a user who booked a car needs to do something out of the car in a little period of time (at most 3 hours) and he wants to be sure the car still remains under his control. He can pay for a \emph{keeping aside} service that let him to just don't lose the car in that small period. He will pay the price of the service. The user has to ask for the keeping before his current reservation expires.
+ 
+\subsection{Stimulus/Response Sequences}
+\subsubsection{Use cases}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Keep aside your car\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & User is currently using a rented car (the current rental is not expired/ended)\\
+\midrule
+Flow of events & While a user is driving a car, he needs to stop and leave the car for a while to do something or for a commitment. Before power the engine off, the user can \emph{keep aside} his car. Using the application or the website, he can activate the keeping aside function, so the car remains unavailable to other users for up 3 (three) hours\\
+\midrule
+Exit conditions & The car is marked as unavailable until he users picks it up again or interrupts the \emph{keeping aside}. System locks the car when nobody is inside the car. System starts to measure duration of the service when user actives it.\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Coming back and pick-up again the car:
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Continue rental\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & The car is kept aside\\
+\midrule
+Flow of events & After keeping aside his car, user can unlock again the car using the same unlock code and continue his rental.\\
+\midrule
+Exit conditions & System continues to charge the rental as if it has never stopped\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Interrupt a keeping aside:
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Interrupt a keeping aside\\
+\midrule
+Actors & Authenticated user\\
+\midrule
+Entry conditions & The user has to have keep aside his car before\\
+\midrule
+Flow of events & If after keep aside his car the user realizes that the car is no longer required, he can interrupt the keeping aside reservation by the related command from the application or the website.\\
+\midrule
+Exit conditions & The system will bill the user the benefited services. Also the system will mark the car as available. \\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\subsubsection{Sequence diagram}
+Here a representation of the events that are involved in the step of keeping aside a car.
+\begin{center}
+\includegraphics[width=\columnwidth]{SDKeepAside.pdf}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should allow to require a \emph{keep aside reservation} only while the current car use is not over;
+\item System should not allow to keep aside a car for more than 3 (three) hours;
+\item System should start debit the user of keep aside cost;
+%\item System should ask a payment in advance with respect to the confirmation of a \emph{keep aside reservation};
+%\item System should keep aside a car only after receiving the related payment from the user;
+\item System should not mark as available a \emph{kept aside} car to users other than the applicant.
+\end{enumerate}
+
+\section{Notify issues}
+\subsection{Description and Priority}
+If a user notice a car issue or encounter problems during a ride, he will be able to notify the company so that an employee can take care of him and hopefully solve the issue.
+This feature is complementary, but for a complete service it needs to be developed.
+\subsection{Stimulus/Response Sequences}
+(see diagram \vref{fig:usecases})
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should be able to receive notifications;
+\item System should be able to store notifications;
+\item System should be able to report the status of a notification the user;
+\end{enumerate}
+
+\section{Computing amount of a ride}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should start debit the user when the engine ignites;
+\item System should stops debit the user of \emph{riding cost} when the engine stops and he exits the car;
+\item System should check the number of people present inside the car;
+\item System should be able to notify the end of debit to user.
+
+\end{enumerate}
+
+\section{Opening and closing cars - Unlocking and locking}
+\subsection{Description and Priority}
+A car has to be unlocked when required by the nearby user associated in that moment to the car, and has to be locked when it is left or when it is parked during a \emph{keep aside}.
+
+\subsection{Stimulus/Response Sequences}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should being allowed to open the car by the \emph{proximity check} (see \vref{sec:proximity});
+\item System should generate a different unlock code for each reservation;
+%\item System is able to verify if pin inserted by user is correct and unlock the car
+%\item user can unlock the car only after he receives pin or proximity signal to use
+\item System should lock the car only when nobody is inside the car and the engine is powered off;
+\item System should not lock the car while someone is inside the car;
+\item System should not leave an available car unlocked;
+\end{enumerate}
+
+\section{Applying discounts}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should be able to compute a discount;
+\item System should check the number of passenger in the car;
+\item System should compute the amount of battery used;
+\item System should deduce the remaining battery amount;
+\item System should check if the car is parked and plugged in a power grid.
+\end{enumerate}
+
+\section{Applying extra fees}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should be able to compute itself the overcharge;
+\item System should compute the distance from the nearest power grid station;
+\item notify...
+\end{enumerate}
+
+\section{Overview and monitoring the services}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+(see diagram \vref{fig:usecases})
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & View report\\
+\midrule
+Actors & Management employee\\
+\midrule
+Entry conditions & User has to be signed in\\
+\midrule
+Flow of events & A manager wants to know the current position of the cars, the amount of money earned so far, statistics. He sign in the website and ask for the "View Report" function. The system shows him a map crowded by cars icons, and report and statistics\\
+\midrule
+Exit conditions & ---\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should offer an interface for the state of each car;
+\item System should be able to get all the status data and positions at the current instant;
+\item System should be able to elaborate a human-readable diagram to show up that data; 
+\item System should pin on a correspondent map the position of the cars;
+\end{enumerate}
+
+\section{Listening for failures}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+(see diagram \vref{fig:usecases})
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Watch problem status\\
+\midrule
+Actors & Maintenance employee\\
+\midrule
+Entry conditions & User has to be signed in\\
+\midrule
+Flow of events & The user signs in the website and the system shows him a monitoring page. When a issue is notified, he can ask for details and take care of that issue.\\
+\midrule
+Exit conditions & ---\\
+\midrule
+Exceptions & An issue occurs: the user is notified and he may attend and solve the issue.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Attend and solve issue\\
+\midrule
+Actors & Maintenance employee\\
+\midrule
+Entry conditions & User has to be signed in and has to previously being watching the problems status\\
+\midrule
+Flow of events & The user receives a issue notification. He can ask for details and take care of that issue.\\
+\midrule
+Exit conditions & The status of the issue is updated as the result of the maintenance employee action\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item \emph{On-board car system} should notify the main system when a failure occurs;
+\item Main system should listen for notification from any \emph{on-board car system};
+
+\end{enumerate}
+
+\section{Editing parameters}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+(see diagram \vref{fig:usecases})
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & Edit settings\\
+\midrule
+Actors & Management employee\\
+\midrule
+Entry conditions & User has to be signed in\\
+\midrule
+Flow of events & The user wants to update some parameters of the services\\
+\midrule
+Exit conditions & The status of the issue is updated as the result of the maintenance employee action\\
+\midrule
+Exceptions & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should show the current parameters as \emph{ride price} per minute, \emph{keep aside} per minute, percentage of discounts;
+\item System should be able receive the new values to assign to the parameters;
+\end{enumerate}
+
+\section{Billing a user}
+\subsection{Description and Priority}
+The company bill a user at the very end of the rental, when the user leaves the car definitively.
+
+\subsection{Stimulus/Response Sequences}
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item System should wait 5 minutes before proceed to bill a benefited service;
+\item System should sum the riding amount (if any), the keeping aside amount (if any), the penalty (if any);
+\item System should bill the user when the reservation expires without pick up or when engine stops and he exits the car and no \emph{keep aside} is required;
+\item System should check where the car is parked/located when engine stops and the user exits the car;
+\item System should apply business rules about discounts;
+\item System should check the number of people present inside the car;
+\item System should notify the user about the invoice and the end of rental;
+\item System should send to the \emph{payment handler} a withdrawal request;
+\item System should become aware of the transaction outcome.
+
+\end{enumerate}
+
+\begin{comment}
+\section{Goal3}
+\subsection{Description and Priority}
+
+\subsection{Stimulus/Response Sequences}
+(see diagram \vref{fig:usecases})
+\subsection{Functional Requirements}
+\begin{enumerate}[label=R\arabic*.,resume]
+\item
+\end{enumerate}
+\end{comment}
+
+\chapter{Other Nonfunctional Requirements}
+
+\section{Performance Requirements}
+\begin{comment}$<$If there are performance requirements for the product under various 
+circumstances, state them here and explain their rationale, to help the 
+developers understand the intent and make suitable design choices. Specify the 
+timing relationships for real time systems. Make such requirements as specific 
+as possible. You may need to state performance requirements for individual 
+functional requirements or features.$>$
+\end{comment}
+
+\section{Safety Requirements}
+A registered user is not allowed to register again while he is registered yet.
+
+\begin{comment}$<$Specify those requirements that are concerned with possible loss, damage, or 
+harm that could result from the use of the product. Define any safeguards or 
+actions that must be taken, as well as actions that must be prevented. Refer to 
+any external policies or regulations that state safety issues that affect the 
+product's design or use. Define any safety certifications that must be 
+satisfied.$>$
+\end{comment}
+
+\section{Security Requirements}
+\label{sec:security}
+The users' data need to be stored in a proper "database" to preserve them from any use not involved in the requirements listed in this document.
+Payment data are sensibles data which the company only wants to use to have its services payed.
+The password provided by the system to the user during the registration step should be longer than 10 chars and should contain at least a cipher, a special character, and a capital char.
+The way chose to state/verify the proximity of a user should guarantee 99\% not to allow wrong deduction. [We suggest to solve this issue by NFC tags and QR code.]
+\begin{comment}$<$Specify any requirements regarding security or privacy issues surrounding use 
+of the product or protection of the data used or created by the product. Define 
+any user identity authentication requirements. Refer to any external policies or 
+regulations containing security issues that affect the product. Define any 
+security or privacy certifications that must be satisfied.$>$
+\end{comment}
+
+\section{Software Quality Attributes}
+\begin{comment}$<$Specify any additional quality characteristics for the product that will be 
+important to either the users or the developers. Some to consider are: 
+adaptability, availability, correctness, flexibility, interoperability, 
+maintainability, portability, reliability, reusability, robustness, testability, 
+and usability. Write these to be specific, quantitative, and verifiable when 
+possible. At the least, clarify the relative preferences for various attributes, 
+such as ease of use over ease of learning.$>$
+\end{comment}
+
+\section{Business Rules}
+\label{sec:business}
+Policies concerning the stimulus of users' virtuous behaviors. Price reduction or increasing on the last ride of the user as stated in the following list:
+
+\begin{itemize}
+		\item --10\% if the user took at least two passengers into the car;
+		\item --20\% if the car is left with no more than 50\% of battery empty;
+		\item --30\% if the car is left at a special parking areas and user plugs the car into the power grid;
+		\item +30\% if the car is left more than 3Km from the nearest power grid station or with more than 80\% of battery empty;
+	\end{itemize}
+
+Discounts cannot be combined: in case of multiple satisfied conditions, the best (greatest) one will be applied.
+Extra fees conditions comply to the logical operator \emph{OR}.
+\begin{comment}$<$List any operating principles about the product, such as which individuals or roles can perform which functions under specific circumstances. These are not functional requirements in themselves, but they may imply certain functional 
+requirements to enforce the rules.$>$
+\end{comment}
+
+
+\chapter{Other Requirements}
+\begin{comment}$<$Define any other requirements not covered elsewhere in the SRS. This might 
+include database requirements, internationalization requirements, legal 
+requirements, reuse objectives for the project, and so on. Add any new sections 
+that are pertinent to the project.$>$
+\end{comment}
+
+\section{Appendix A: Glossary}
+\label{sec:glossary}
+%see https://en.wikibooks.org/wiki/LaTeX/Glossary
+\begin{description}
+\item [potential user] is a person who may be interested in the service of rent a car and visits, as a guest does, the website or the application;
+\item [user] is a registered user who gave his identification data (CF, name, surname, email, driver license number, payment data, billing data);
+\item [authenticated user] is a user logged in the system who can access to all the services provided by the system to the users;
+\item [CF] is the acronym of \emph{Codice Fiscale}, the Italian correspondent of SSN -- Social Security Number;
+\item [client] refers generically to a beneficiary of the system such as the potential user, the user and the authenticated user;
+\item [safe areas] are public parkings and company-owned parking places in both cases on a single layer. Parkings built as multiple layers perfectly overlapped are not considered safe areas;
+\item [reservation] is a binding request that includes a car booked for a specified date and time, a booker user, provided up to one hour in advance;
+\item [car] is a company owned vehicle with geographical position detector, lock/unlock system, passenger counter sensor, display for information related to the ride, engine-on detector, battery level status. Each car is identified by the license plate;
+\item [reserved car] is a car associated to a user who selected and reserved it. That car is not available to other user other than the one associated.
+\item [rental] indicates the set of services and actions from when the user picks up a car to when he leaves it;
+\item [ride] refers to the specific part of the rental when the car is running around;
+\item [driver] a person who drives the car;
+\item [passenger] a person who is in the car but not the driver;
+\item [power grid station] is an accessible device where a car can be plugged in (with a suitable cord) to recharge the battery;
+\item [maintenance] concerns the taking care of cars that are damaged, discharged, with any sort of problems;
+\item [system] is the whole developing architecture and application that will take care of the management of the services as shown in this document;
+\item [discount] price reduction;
+\item [GPS] stands for Global Positioning System, the technology used to geographically locate an object equipped with a special transceiver;
+\item [on-board system] indicates the part of the system installed and running on the car which is responsible for interfacing the control unit of the car with the system. It allows communication of the values of the sensors on the car to the system, and allows the system to activate the actuators on the car;
+\item [NFC] stands for Near Field Communication, a set of communication protocols that enable two electronic devices to establish communication by bringing them within 4 cm of each other;
+\item [QR code] stands for Quick Response code. It is a two-dimensional bar code;
+\item [operator OR] as the Boolean operator OR. Conditions linked with this disjunctive operator make the statement false if and only if all the conditions are false, otherwise the statement is true.
+\item [report] a complete analysis and overview of the incomings, outgoings, revenues, statistics about the requested services;
+\item [payment handler] third part service responsible for actuation of payments;
+\item [service] refers to the renting cars business supplied by the company to the users.
+\end{description}
+
+\begin{comment}$<$Define all the terms necessary to properly interpret the SRS, including 
+acronyms and abbreviations. You may wish to build a separate glossary that spans 
+multiple projects or the entire organization, and just include terms specific to 
+a single project in each SRS.$>$
+\end{comment}
+
+\section{Appendix B: Analysis Models}
+\subsection{Use cases diagram}
+
+\begin{center}
+\label{fig:usecases}
+\includegraphics[width=\columnwidth]{UseCasePowerEnJoy1.pdf}
+\end{center}
+
+\begin{comment}
+Use cases table example:
+\begin{table}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Use case & \\
+\midrule
+Actors & \\
+\midrule
+Entry conditions & \\
+\midrule
+Flow of events & \\
+\midrule
+Exit conditions & \\
+\midrule
+Exceptions & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\end{comment}
+
+\subsection{Scenarios}
+Here some possible scenarios involved in the use of this system.
+
+\subsubsection{Registration}
+Wile E. Coyote got tired of chasing Beep Beep walking. He just found out there are rentable car that could fit to him. He decides to become better informed surfing the company's website and, convinced, wants to register.
+Fill in the form proposed with its data: name, surname, social security number, e-mail, driving license, credit card and billing information. Consent to the processing of personal data and consent to the company to withdraw the amounts charged of any services.
+Soon he will receive an email from the system with the password to log in the system and finally capture the spiteful roadrunner.
+
+\subsubsection{Unlock a car}
+Bugs Bunny is a registered user in Power EnJoy system. He finished the supply of carrots and does not want to remain without dinner, so he comes out the den and see that right there alongside there is a Power EnJoy car. So it hastens to approach, accesses the system via the application, selects the car and prompts to begin immediately a rental. The system sends the unlock code to be communicated to the machine sensor and since it is correct, the car opens, ready to move.
+
+\subsubsection{Reservation}
+Pluto wonders to move in Milan to places non served by public transport. He live out the city and he would like to use the train to get in the city and pick up a car of ours. He take the train and when he is less than an hour near to the car station, he sign in the system with the password he received at the registration step, then he ask for a car near the \emph{Milano Nord Cadorna} railway station and select the car with the battery fully charged; he proceed booking the car. Once he arrives, he gets the car and goes its way. %He returns to the station in the evening, parks the car and go back home.
+
+\subsubsection{Passengers discount}
+Topolino needs to go in a “ZTL” zone where only some types of vehicles are allowed. So he decide to opt for our electric cars, which are allowed in that area. He also wants to take with him his sister and her boyfriend. At the end of the ride, he will obtain a discount of 10\% on the amount of the ride.
+
+\subsubsection{Plugging discount}
+Minnie is a very careful person. She sometimes needs to go from a part of the city to another, luckily both near a power grid station of our company. So when she has used the car, she parks it in the power grid and plugs it, so she can get a 30\% discount.
+
+\subsubsection{Multiple discounts}
+Paperon de Paperoni is a regular user of Power Enjoy services. He knows very well the policies about discounts, but he never remembers that discounts are not combinable. So one day he decides to bring to the park Qui, Quo and Qua by car. They search a car using the application, they reserve it and they in 10 minutes are near the car and they pick it up. They arrive at the park, where is available a power grid station, and Paperon plugs the car into. He is sure to receive the discount for the number of passenger plus the discount for the recharging, but he will only get the second one (--30\% because of power grid station).
+
+\subsubsection{Reservation expiring}
+Pippo wants to book a car for his travel. He registers to the site, provides all the infos required and book a car. He thinks he will arrive in an hour at the car station, but unfortunately his boss assigns him a very long task that committed him for two hours. So, one hour after the reservation, the system charges Pippo a 1EUR fee and the car will become again available.
+
+\subsubsection{Keeping aside}
+Minnie and Topolino are furnishing the house with the intention of getting married soon.
+They want to go and buy some small kitchen accessories to IKEA. The store is just outside the city, so they decide to get there by using one of our cars.
+Near their home there is a parked car available, therefore they start a rental.
+Arrived at the IKEA parking lot, they choose to keep aside the car, hoping to go out within 3 hours. So before turning off the engine Mickey enters the application and asks for a keep aside.
+Happy, they hop off the car, make purchases, and after well two hours they come back to the car. Through the application Topolino asks to unlock the car. They go home satisfied, and they park in a municipal parking lot.
+
+\subsubsection{Notify issues}
+Daffy Duck is not very lucky\dots While driving, in summer with the windows down, it starts to rain. He tries to close the power windows of the car, but the controls do not respond. So he decides to report the problem to the company. Enter the application and writes a message reporting the problem. A maintenance employee will promptly take care of the issue.
+
+\subsubsection{Edit settings}
+Yosemite Sam, a management employee of the company, receives an order from his boss about increasing the rate per minute of the ride to cope the increase in electricity costs. He enters in the editing parameters section of the website and changes just what he needs.
+
+\subsection{UML diagram}
+\begin{center}
+\includegraphics[height=\textheight]{UMLPowerEnJoy.png}
+\end{center}
+
+\subsection{State diagram}
+\begin{center}
+\includegraphics[width=\columnwidth]{STDCarState.png}
+\end{center}
+\begin{comment}
+\begin{figure}
+\caption{}
+\includegraphics{}
+\end{figure}
+\end{comment}
+
+\subsection{Activity diagram}
+\begin{center}
+\includegraphics[height=\textheight]{activityDiag.pdf}
+\end{center}
+
+\begin{comment}$<$Optionally, include any pertinent analysis models, such as data flow 
+diagrams, class diagrams, state-transition diagrams, or entity-relationship 
+diagrams.$>$
+\end{comment}
+
+\subsection{Alloy model}
+
+\begin{verbatim}
+open util/boolean
+
+one sig Company{
+	cars: set Car,
+	safeAreas: set SafeArea,
+	users:set User // ?? Van messi ??
+}
+
+fact allUserBelongToCompany{
+	no u: User | not (u in Company.users)
+}
+
+
+fact allCarsBelongToCompany{
+	no c: Car | not (c in Company.cars)
+}
+
+
+fact allSafeAreaBelongToCompany{
+	no s:SafeArea | not (s in Company.safeAreas)
+}
+
+
+sig Position{
+	latitude: Int, //should be float
+	longitude: Int //should be float
+}
+
+
+// CAR
+
+sig Targa{}
+
+sig Car {
+	targa: Targa,
+	position:  Position,
+ 	available: Bool,	
+ 	isBatteryCharging:Bool,
+	batteryLevel: Int,
+	numberSeat: Int
+}{
+ 	batteryLevel>=0 and batteryLevel<=100
+ 	numberSeat>=0 and numberSeat <5
+}
+
+
+fact noEqualTarga{
+  	no c1,c2:Car|( c1!=c2 and c1.targa=c2.targa )
+}
+
+
+// USER
+
+
+sig DriverLicense{}
+sig Password{}
+
+sig User{
+	driverLicense: DriverLicense,
+	password: Password,
+	signedIn: Bool// 0=no , 1 =yes
+}
+
+fact noSameUser{
+	no u1,u2:User| u1.driverLicense=u2.driverLicense and u1!=u2
+}
+
+
+fact noSamePassword{
+	no u1,u2:User| u1.password=u2.password and u1!=u2
+}
+
+fact noUserCanRentIfIsNotLogged{
+	all r:Rental | r.user.signedIn=True
+}
+
+fact noUserCanReserveIfIsNotLogged{
+	all r:Reservation | r.user.signedIn=True
+}
+
+
+// SAFE AREA
+
+sig SafeArea{
+	position: Position,
+	isBusy: Bool
+}
+
+
+fact noDifferentAreaSamePosition
+{
+	no s1,s2:SafeArea  | (s1.position=s2.position and s1!=s2 )
+}
+
+
+
+fact noCarInSamePosition{
+ 	no c1,c2:Car | (c1!=c2 and c1.position=c2.position)
+}
+
+fact areaIsFree{
+	all s:SafeArea |s.isBusy=False iff(no c:Car | c.position=s.position)
+}
+
+fact areaIsBusy{
+	all c:Car,s:SafeArea | c.position=s.position implies s.isBusy=True
+}
+
+//PowerGridStation
+
+sig PowerGridStation extends SafeArea{
+	isChargingCar: Bool
+}
+
+
+fact carIsCharging{
+	all c:Car,pgs:PowerGridStation | 
+	( c.isBatteryCharging=True and c.position=pgs.position  ) implies pgs.isChargingCar=True
+}
+
+fact noCarNoChar{
+	all p:PowerGridStation| p.isBusy=False implies p.isChargingCar=False
+}
+
+fact carIsChargingTwo{
+	all c:Car,pgs:PowerGridStation | 
+	(pgs.isChargingCar=True  and c.position=pgs.position  ) implies c.isBatteryCharging=True
+}
+
+fact noCarIsChargingOutOfPGS{
+	all c:Car | c.isBatteryCharging=False iff (no p:PowerGridStation | c.position=p.position )
+}
+
+
+// Reservation
+
+
+sig Reservation{
+	timeout: Int,
+	user:  User,
+	car: Car,
+//	bill: Bill
+}{
+	timeout>=0 and timeout<=60
+}
+
+
+fact allCarReservedAreUnavailable{
+	all r:Reservation, c:Car | (c=r.car) implies c.available=False
+}
+
+
+fact noSameUserOrCarReservation{
+	no disjoint r1,r2:Reservation|r1.user=r2.user or r1.car=r2.car
+}
+
+sig Rental{ 
+	car: Car,
+	user: User,
+	numberPassenger: one Int,
+	duration:Int,
+//	state : State,
+	bill: Bill
+}{	
+	numberPassenger>=0 and numberPassenger<car.numberSeat
+	duration>0
+}
+
+//state of KeptAside 
+
+/*sig State{
+	time:Int // time while car in one state or another of rental
+}
+
+sig OnGoing extends State{}
+
+sig OnKeptAside extends State{}
+{
+	time>=0 and time<=18 // really is valued 180
+}
+*/
+
+
+fact noSameUserOrCarOnRental{
+	no disjoint r1,r2:Rental| r1.user=r2.user or r1.car=r2.car
+}
+
+fact carNoRentalNoReserveAreAvailable{
+	all  c:Car | c.available=True iff  (no rental:Rental, reserve:Reservation| rental.car=c or reserve.car=c)
+}
+
+
+fact carNotOnRentalAndReservationAtSameTime{
+	no rental:Rental,reserve:Reservation |
+ 	rental.car=reserve.car or rental.user=reserve.user 
+}
+
+
+fact allCarOnRentalAreUnavailable{
+	all r:Rental, c:Car | (c=r.car) implies c.available=False
+}
+
+
+
+//BILLS, DISCOUNT and OVERCHARGE
+
+
+sig Bill{
+	amount: one Int,
+	discount:Discount,
+	rental: Rental,
+	overcharge:OverCharge
+}{
+	amount>0
+}
+
+abstract sig Discount{
+	amount:Int
+}{
+	amount<=0
+}
+
+abstract sig OverCharge{
+	amount:Int
+}{
+	amount>=0
+}
+
+one sig ThirtyIncrement extends OverCharge{}
+{
+	amount=30
+}
+
+one sig NoIncrement extends OverCharge{}
+{
+	amount=0
+}
+
+one sig NoDiscount extends Discount{}
+{
+	amount=0
+}
+
+
+one sig TenDiscount extends Discount{}
+{
+	amount=-10
+}
+
+sig TwentyDiscount extends Discount{}
+{
+	amount=-20
+}
+
+one sig ThirtyDiscount extends Discount{}
+{
+	amount=-30
+}
+
+fact noDiscountForUser{
+	all rental:Rental | 
+	(rental.numberPassenger<2 and rental.car.batteryLevel<50 and rental.car.isBatteryCharging=False) 
+	implies rental. bill.discount=NoDiscount
+}
+
+fact discountPassenger{
+	all rental:Rental | 
+	(rental.numberPassenger>=2 and rental.car.batteryLevel<50 and rental.car.isBatteryCharging=False) 
+	implies rental. bill.discount=TenDiscount
+}
+
+fact discountBattery{
+	all rental:Rental| 
+	(rental.car.batteryLevel>50 and rental.car.isBatteryCharging=False)  implies rental.bill.discount=TwentyDiscount
+}
+
+fact discountCharging{
+	all rental:Rental | rental.car.isBatteryCharging=True implies rental.bill.discount=ThirtyDiscount
+}
+
+fact payOvercharge{
+	all rental:Rental |( rental.car.batteryLevel<=20 //or noPwgNear[rental.car]
+	) implies rental.bill.overcharge=ThirtyIncrement
+}
+
+
+fact payNoOvercharge{
+	all rental:Rental |( rental.car.batteryLevel>=20 //or noPwgNear[rental.car]
+	) implies rental.bill.overcharge=NoIncrement
+}
+
+
+fact oneRentalOneBill{
+	all disjoint r1,r2:Rental|r1.bill!=r2.bill
+}
+
+fact oneBillOneRental{
+	all disjoint b1,b2:Bill|b1.rental!=b2.rental
+}
+
+fact billAndEquivalentRentall{
+	all r:Rental,b:Bill | r.bill=b implies b.rental=r
+}
+
+
+pred userCanReserveOrRentCar[u:User,c:Car]
+{
+	all rental:Rental,reserve:Reservation | rental.user!=u and reserve.user!=u and rental.car!=c and reserve.car!=c
+}
+
+assert allCarOnRentalAreUnavailable{
+	all rental:Rental | rental.car.available=False
+}
+
+assert allCarReservedAreUnavailable{
+	all reserve:Reservation | reserve.car.available=False
+}
+
+
+
+
+run {} for 5 but 8 Int, exactly 4 Car,exactly 3 SafeArea,exactly 2 Reservation
+
+run userCanReserveOrRentCar
+
+check allCarOnRentalAreUnavailable
+check allCarReservedAreUnavailable
+
+// # Instance. found. Predicate is consistent
+// # Instance. found. Predicate is consistent
+
+//No counterexample found. Assertion may be valid
+//No counterexample found. Assertion may be valid
+
+\end{verbatim}
+
+\begin{center}
+\includegraphics[height=\textheight]{activityDiag.pdf}
+\end{center}
+
+\section{Appendix C: Work Hours}
+\begin{center}
+    \begin{tabular}{lcc}
+        \toprule
+	   \textbf{ Day }& \textbf{ Marco [h]  }& \textbf{ Daniele [h] }\\
+        \midrule
+		Saturday 29/10 & 3 & 3\\
+		Monday 31/10 & 3 & 3\\
+		Tuesday 1/11 & & 1\\
+		Thursday 3/11 & &1.5\\
+		Friday 4/11 & 1 & 1\\
+		Saturday 5/11 & 4 & 1\\
+		Sunday 6/11 & 6 & 6\\
+		Monday 7/11 & 3 & 3\\
+		Tuesday 8/11 & 2 & 2\\
+		Wednesday 9/11 &2 &3\\
+		Thursday 10/11 & 2 & 2\\
+		Friday 11/11 & 3 & 4\\
+		Saturday 12/11 & 9 & 9\\
+		Sunday 13/11 & 10 & 10\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+
+\begin{comment}
+\section{Appendix C: To Be Determined List}
+\begin{comment}$<$Collect a numbered list of the TBD (to be determined) references that remain 
+in the SRS so they can be tracked to closure.$>$
+\end{comment}
+
+\end{document}
