@@ -1,0 +1,630 @@
+\documentclass{scrreprt}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  keepspaces=true,
+}
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{green},
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{grey}]{$$},
+  moredelim=[is][\textcolor{grey}]{\%\%}{\%\%}
+}
+\usepackage{underscore}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+%\usepackage[bookmarks=true]{hyperref}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{multirow}
+
+
+\hypersetup{
+    bookmarks=false,    % show bookmarks bar?
+    pdftitle={Design Document},    % title
+    pdfauthor={Marco Sartini, Daniele Riva},                     % author
+    pdfsubject={Power EnJoy},                        % subject of the document
+    pdfkeywords={software engineering, car, power, project}, % list of keywords
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,       % color of internal links
+    citecolor=black,       % color of links to bibliography
+    filecolor=black,        % color of file links
+   % urlcolor=purple,        % color of external links
+    linktoc=page            % only page is linked
+}%
+\def\myversion{1.0 }
+\def\version{1.0}
+%\date{28/10/2016}
+\titlehead{\centering\includegraphics[width=6cm]{Logo_Politecnico_Milano.png}}
+\title{Design Document\\for\\PowerEnJoy}
+\date{\today\\\bigskip version \version}
+\author{Daniele Riva\thanks{matr. 875154}\and Marco Sartini\thanks{matr. 877979}}
+
+\begin{document}
+\pagestyle{headings}
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+
+\section{Purpose}
+This Design Document document has the purpose to describe in detailed way the architecture of the system, the data structures, the user interface, the components.
+\section{Scope}
+The project \emph{Power EnJoy}, which is a service based on mobile and web application, has some different targets of people:
+\begin{itemize}
+\item clients;
+\item employee;
+\end{itemize}
+\section{Definitions, acronyms, abbreviations}
+\begin{description}
+\item[RASD] requirements analysis and specification document;
+\item[DD] design document;
+\item[UX] User experience;
+\item[JPA] Java Persistence API;
+\item[EJB] Enterprise JavaBeans;
+\item[JSP] JavaServer Pages;
+\item[HTTPS] HyperText Transfer Protocol over Secure Socket Layer;
+\item[Apache Tomcat] is a Java Servlet Container;
+\end{description}
+\section{Reference documents}
+RASD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/rasdPowerEnJoy.pdf}
+
+\begin{comment}
+\section{Document structure}
+\end{comment}
+
+\chapter{Architectural design}
+
+\section{Overview}
+\begin{figure}[h]
+\centering
+		\includegraphics[width=\textwidth]{./dd/layer.pdf}
+		\caption{Overview of the system architecture: layer division and tier identification.}
+		\label{layerTier}
+\end{figure}
+The system is multi-tier, in fact it is composed by:
+\begin{itemize}
+\item the main logic element as the \emph{Application server};
+\item a restricted logic element placed on the cars as \emph{On-board system};
+\item data are managed and stored in a dedicated server as \emph{Database server} (this component is in charge of the data layer);
+\item a web-server is in charge to interact with the users who adopt the website solution and to interface with the application server;
+\item presentation layer is assigned to the mobile app, which interfaces directly with the application server, to the \emph{on-board application} which interfaces directly with the \emph{on-board system} and to the web browser which interfaces directly with the web server.
+\end{itemize}
+The \emph{external systems} icon symbolizes and reminds that the system relies on also other systems to carry out its tasks, such as the interaction with the Payment Handler system and the third party maps service.
+
+\section{Component view}
+In this section the components will be presented individually to show up their behavior, their sub-components, how they interface each other.
+
+\subsection{Database}
+The database component will include a DBMS to properly manage the data and their handling. It will interact only with the Application Sever, using a secure interface which guarantees the security requirements. Data in this component are stored with particular care on encryption.
+The logical data representation is shown in the E-R schema below.
+As evident from the schema, a relational database broadly meets the needs of the system.
+
+\begin{center}
+		\includegraphics[width=1.45\textwidth, angle=90]{./dd/er.pdf}
+\end{center}
+
+\subsection{Application server}
+The application server contains the main logic aspects of the system, except the ones performed by the \emph{on-board system}; the features are implemented by the modules described below.
+The application server interfaces with the data layer using a dedicated connector responsible for the communication between the two components. 
+
+The application server is composed by:
+\begin{description}
+\item[UserManager] this module will take care to handle login requests, registration requests and what concern with this operations such as adding users to the database, generating passwords, checking data consistency and so forth;
+\item[CarsManager] this module will take care of car management regarding the status of the car with the respect to the possibility of usage, it will also handle the requests of check availability of a car and modify its status following a reservation or a rental and it will maintain updated the general state of the fleet;
+\item[ReservationManager] this module will take care of the reservations, included setting them up, avoiding multiple reservation per same car and/or per same user simultaneously, implementing services to comply with timeout constraints. This module interacts with CarsManager module and PaymentManager module;
+\item[RentalManager] this module will take care of the rental aspects, managing rental requests, generating proximity codes, timing the rental, interact with CarsManager, ReservationManager KeepAside Manager and PaymentManager;
+\item[KeepAsideManager] this module will take care of the \emph{keep aside} services, timing the keep aside requests, interacting with the RentalManager;
+\item[PaymentManager] this module will take care of stating the amount of cash to debit to users based on the duration of benefited services, and will also interact with the payment handler (external system) to have the bills paid;
+\item[MapsManager] this module will take care of composing the map view of the available cars and interact with the chosen maps API. This module interacts with the CarsManager;
+\item[IssueManager] this module will take care of handling issue and their status;
+\item[SettingManager] this module will take care of handling the possibility of edit the rental and keep aside cost per minute.
+\end{description}
+
+A graphical description of the modules is showed below: 
+\begin{center}
+		\includegraphics[width=\textwidth]{./dd/componentInterfaces.pdf}
+\end{center}
+
+\subsection{On-board car system}
+This component is placed on the car, connected to the car control unit with a dedicated interface able to interpret signals provided by the control unit and also able to interact with it sending proper signals to actuate actuators.
+It act as a branch of the application server over each car, devoted to the physical control (that is more significant to be confined to the car than to be in charge of the main application server).
+
+CarSystemManager: this module will be a bridge between the electronics of the car and the central system: it will manage actuation requests (such as lock/unlock doors) to interface with the car control unit and it will handle notifications from the car control unit to the central system, in addition to autonomously notify particular events to the central system.
+
+Notice that this component only shows information to the user, but does not take inputs or request except the \emph{unlock code}. This component is not designed to be an interaction component between the user and the application server, like the mobile app does instead.
+
+\subsection{Mobile App client}
+The mobile app is probably the primary way the users adopt to interface with the \emph{Power EnJoy} services.
+This component interact directly with the Application server due to a dedicated communication protocol.
+This component must provide a module to properly handle the geolocalization feature, which is able to get data from the smartphone GPS sensor.
+
+\subsection{Web server}
+Since it must be available a web version of the application, it is essential to have a dedicated web server to handle the related requests and responses. The presentation layer of the website is entrusted to the user's web browser.
+The web server interfaces with the application server to proper get the information to include in the processing pages. It will also feed the application server with the data received from the user.
+
+\section{Deployment view}
+
+\begin{center}
+	\includegraphics[height=\textheight]{./dd/DeploymentView.pdf}
+\end{center}
+
+\section{Runtime view}
+In this section are shown the sequence diagrams related to a bunch of functionalities implemented by the system, to better figure out the interactions between components and actors at runtime stage.
+
+\subsection{Registration}
+This sequence diagram exposes the registration process of a new user.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/ComponentInteractionRegistration.pdf}
+%		\caption{Sequence diagram: registration.}
+%		\label{regSD}
+%\end{figure}
+\end{center}
+\subsection{Login}
+This sequence diagram exposes the login process of a user or an employee.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/componentInteractionLogin.pdf}
+	%	\caption{Sequence diagram: login.}
+	%	\label{logSD}
+%\end{figure}
+\end{center}
+\subsection{Car selection}
+This sequence diagram exposes the process related to the selection of a car by a user.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/componentInteractionChooseCar.pdf}
+%		\caption{Sequence diagram: choosing a car.}
+%		\label{chcarSD}
+%\end{figure}
+\end{center}
+
+\subsection{Car reservation}
+This sequence diagram exposes the car reservation process actuated by a user.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/componentInteractionReservation.pdf}
+	%	\caption{Sequence diagram: car reservation.}
+	%	\label{reservSD}
+%\end{figure}
+\end{center}
+
+\subsection{Car immediate rental}
+This sequence diagram exposes process related to a car rental without reservation actuated by a user.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth, height=\textheight]{./dd/startRentalInteraction.pdf}
+%		\caption{Sequence diagram: car rental.}
+	%	\label{rentSD}
+%\end{figure}
+\end{center}
+
+\subsection{Keep aside interaction}
+This sequence diagram exposes the \emph{keep aside} process actuated by a user.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/keepAsideInteraction.pdf}
+	%	\caption{Sequence diagram: car keep aside.}
+	%	\label{keepSD}
+%\end{figure}
+\end{center}
+
+\subsection{Reporting issue}
+These sequence diagrams expose the processes involved when an issue occurs and the user wants to report it.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/reportIssueInteractionUser.pdf}
+	%	\caption{Sequence diagram: the user reports an issue.}
+	%	\label{userIssSD}
+%\end{figure}
+\end{center}
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/reportIssueInteractionMaintenance.pdf}
+	%	\caption{Sequence diagram: the maintenance employee solves an issue.}
+	%	\label{empIssSD}
+%\end{figure}
+\end{center}
+
+\subsection{End rental and payment}
+This sequence diagram exposes the how the end of a rental process works and how the payment is handled.
+\begin{center}
+%\begin{figure}[h]
+%\centering
+		\includegraphics[width=\textwidth]{./dd/endRentalAndPaymentInteraction.pdf}
+	%	\caption{Sequence diagram: the end of a rental and its payment.}
+	%	\label{endSD}
+%\end{figure}
+\end{center}
+
+\section{Component interfaces}
+This section lists the interfaces between components.
+
+\subsection{Application and Database}
+The application server interact with the database server supported by the Java Persistence API.
+
+\subsection{Application and Web server}
+Direct communications with the web server are based over RESTful APIs served by the Application server. These APIs are implemented in JAX-RS.
+
+\subsection{Application and Clients}
+Direct communications with clients, as is the mobile application, are based over RESTful APIs served by the Application server. These APIs are implemented in JAX-RS.
+
+\subsection{Web browser and Web server}
+The browsers appointed to deal with the application will communicate with the web server using the HTTPS protocol. The server will reply with the same protocol.
+
+\subsection{Application server and external systems}
+The Application server (in particular the PaymentManager module) interfaces with the Payment Handler system using the APIs provided by the Payment Handler system.
+
+\subsection{Application, internal modules}
+\subsubsection{CarsManager}
+\begin{description}
+\item[checkAvailability(car:Car): boolean] this procedure checks if a car is available to be used or not; it wants as parameter a car; as return value a boolean that indicates the result of the check.
+\item[setUnavailable(car:Car)] this procedure sets unavailable a car; it wants as parameter a car and it is a void procedure, it modifies the value of the car.
+\item[setAvailable(car:Car)] this procedure sets a car available; it wants as parameter a car and it is a void procedure. It modifies the value of the car.
+\item[setState(car:Car, state:State)] this procedure sets the State of the car; it wants as parameters a car and it is a void procedure, it modifies the value of the car. The State of the car can assume the values indicate in the Car State Diagram.
+\end{description}
+
+\subsubsection{ReservationManager}
+\begin{description}
+\item[addReservation(car:Car, user:User)] this procedure creates and adds a new reservation to the list of all reservations; before, the user must have already selected an available car. It wants as parameters the car to reserve and the user who has done the reservation; it's a void procedure, there is not a return value.
+\item[getReservation(user:User): List$<$Reservation$>$] this procedure returns the list of reservation about the user passed as parameters; it wants as parameter a user and as return value a list of reservations;
+\item[getReservation(car:Car): List$<$Reservation$>$] this procedure returns the list of reservations about the car passed  as parameter; it wants as parameter a car and as return value a list of reservations;
+\item[startTimeout(res:Reservation)] this procedure triggers the timer to compute one hour from when the reservation is started; it wants as parameter a reservation; it is a void procedure, there is not a return value.
+\item[setEndReservation(res:Reservation)] this procedure sets the value of the attribute endTime to the current time; it wants as parameter a reservation; it is a void procedure, there is not a return value.
+\end{description}
+
+\subsubsection{RentalManager}
+
+\begin{description}
+\item[addRental(car:Car, user:User)] this procedure creates and adds a new rental to the list of all rentals; before, the user must have already selected or reserved a car; then he can start a rental. It wants as parameters the car to be rented and the user who has done the rent; it is a void procedure, there is not a return value.
+\item[getRental(user:User): List$<$Rental$>$] this procedure returns the list of rentals about the user passed as parameter; it wants as parameter a user and as return value a list of rentals;
+\item[getRental(car:Car): List$<$Rental$>$] this procedure returns the list of rentals about the car passed as parameter; it wants as parameter a car and as return value a list of rentals;
+\item[generateUnlockCode(): String] this procedure generates a code to unlock the car; the user will use this code when he will be nearby the car; it wants no parameters and as return value a String corresponding the unlock code.
+\item[setStartRental(rent:Rental)] this procedure sets the value of startTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
+\item[setEndRental(rent:Rental)] this procedure sets the value of endTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
+\item[checkKeepAsideOnGoing(rent:Rental):boolean] this procedure checks if there are keepAsides ongoing in a rental: if duration of a keepaside is greater than 3 hours or the endTime is not NULL, keepaside is ended; it wants as parameter a rental and as return value a boolean indicates the result of the check.
+\item[assignDiscount(rent:Rental):List$<$Discount$>$] this procedure checks which discounts and overcharges can be applied to a rental and adds them to a list; then it splits the list, holding only the minimum (best discount) and maximum value (worst overcharge). The procedure wants as parameter a rental and return value is a list containing all discounts and overcharges to be applied.
+\end{description}
+
+\subsubsection{MapsManager}
+
+\begin{description}
+\item[searchAvailableCars(): List$<$Car$>$] this procedure searches which cars are available and puts them in a list; it wants no parameters and as return value a list of available cars.
+\item[generateMap(pos:Position, cars:List$<$Car$>$)] this procedure generates a map using the position asked by the user and the list of available cars; it wants as parameters a position and a list of cars.
+\end{description}
+
+\subsubsection{KeepAsideManager}
+
+\begin{description}
+\item[addKeepAside(rent:Rental)] this procedure creates and adds a new keepaside to a rental; before, the user must have already rented a car and the rental has not to be finished yet. It wants as parameter a rental; it is a void procedure, there is not a return value.
+\item[setStartKeepAside(kept:KeepAside)] this procedure sets the value of startTime to the current time; it wants as parameter a keepAside; it is a void procedure, there is not a return value.
+\item[stopKeepAside(kept:KeepAside) : Integer] this procedure sets the value of endTime to the current time and computes the duration of the keep aside; it wants as parameter a keepAside and as return value the duration of the keepAside.
+\end{description}
+
+\subsubsection{OnBoardSystemManager}
+
+\begin{description}
+\item[checkCode(userCode:String): boolean] this procedure checks if the code generated early by application and the code used by user match. It wants as parameters  a String corresponding the code and as return value a boolean indicates the result of the check.
+
+\item[lockDoors()] this procedure communicates with the control unit of the car and which locks the doors; it has no parameters.
+\item[unlockDoors()] this procedure communicates with the control unit of the car and which unlocks the doors; it has no parameters.
+\item[checkNobodyInCar() :boolean] this procedure communicates with the control unit of the car which checks if there is somebody into the car. It has no parameters and as return value a boolean indicates result of the check.
+\item[checkEngine():boolean] this procedure communicates with control unit of the car which checks if engine is running or not. As return value a boolean indicates result of the check. (True=engine on, False=engine off);
+\end{description}
+
+\subsubsection{UserManager}
+
+\begin{description}
+\item[getUser(mail:String, password:String) :User] this procedure checks if exists a user with mail and password used to login; it wants as parameters two Strings, one for mail and one for password; as return value the corresponding user or NULL if user with these credentials does not exist.
+\item[addUser(name, surname, cf, mail, driverLicense, codeAccount, password :String)] this procedure creates and adds a new user; this procedure wants as parameters seven different Strings corresponding at name, surname, cf, mail, driver license,code account and password of the user. It is a void procedure then it has not a return value
+\item[generatePassword() :String] this procedure generates a password for a user; password must be different for each user. It has no parameters and return value is a String corresponding the password generated.
+\item[verifyAlreadyRegistered (cf,mail: String) : boolean] this procedure checks if some of user data (cf and mail ) are different for each user otherwise user cannot be registered. This procedure wants as parameters two different Strings corresponding to user's cf and mail. The return value is a boolean which indicates the result of the check.
+\item[verify (driverLicense, codeAccount :String ) : boolean] this procedure checks if some of user data (driverLicense and codeAccount ) are valid and correct otherwise user cannot be registered. This procedure wants as parameters two different Strings corresponding to the user's drivereLicense and codeAccount. The return value is a boolean which indicates the result of the check.
+\end{description}
+
+\subsubsection{PaymentManager}
+\begin{description}
+\item[computeRentalPrice(rent:Rental) :double] this procedure computes the price of a over rental without keepaside nor discounst; it wants as parameter a rental and return value is the price computed. 
+\item[computeKeepAsidesPrice(rent:Rental) :double] this procedure computes the price of all keepAsides of a over rental: sum all duration of each keepAside and computes the total price. The procedure wants as parameter a rental and return value is the price computed.
+\item[computTotalPrice(rent:Rental) :double] this procedure computes the total price of a over rental considering discounts and keepAsides: sum prices of rental and keepasides then applies discounts and overcharges. The procedure wants as parameter a rental and return value is the total price computed.
+\item[getCurrentCharging(rent:Rental) :double] this procedure computes the total price of a ongoing rental (from the startTime to the current time) non considering discounts but keepAsides: sum prices of rental and keepasides. The procedure wants as parameter a rental and return value is the total price computed.
+\end{description}
+
+\subsubsection{IssueManager}
+\begin{description}
+\item[addIssue(user:User, car:Car, descritpion:String, phoneNumber: String)] this procedure creates and adds a new issue to the list of all issues. It wants as parameters the car with the issue and the user who is reporting the issue, and also his phone number and a description of the issue; it's a void procedure, there isn't a return value;
+\item[setIssueIsSolving(issue:Issue,man:Maintenance)] this procedure modifies the issue status to specify that it is on a solving phase. The procedure wants as parameters an issue and a maintenance man. This is a void procedure, then no return value is defined;
+\item[setIssueSolved(issue:Issue, man:Maintenance)] this procedure modifies the issue status to specify that it has been solved. The procedure wants as parameters an issue and a maintenance man. This is a void procedure, then no return value is defined;
+\end{description}
+
+\subsubsection{SettingManager}
+\begin{description}
+\item[modifyPriceRental(price:Float)] this procedure modifies the current rental price to the value received as parameter. The parameter required is a float number complying the currency of the whole system. This procedure has return type void.
+\item[modifyPriceKeepAside(price:Float)] this procedure modifies the current \emph{keep aside} price to the value received as parameter. The parameter required is a float number complying the currency of the whole system. This procedure has return type void.
+\end{description}
+
+\section{Selected architectural styles and pattern}
+\subsection{Client/server}
+This model is widely used in the system, in fact:
+\begin{itemize}
+\item the Application Server is the main brain of the system, and the users interact with it using a sort of silly client service as is the mobile application or the website;
+\item the Application Server act as a client with the respect to the Database Server;
+\end{itemize}
+
+\subsection{Publisher/Subscriber}
+The Application Server and the on-board system act each other as a publisher/subscriber model, in fact the application server communicates data to the cars, and also the cars communicates data to the Application server but neither the on-board system nor the Application Server ask for that data.
+
+
+\subsection{Multi-tier architecture}
+The architecture is not centralized in a single component, but is composed by a number of different elements each one with a specific task. This improve efficiency and reliability of the system. This allows the physical delocalization of the elements, the possibility of component replication and so forth to ensure a high quality of service.
+
+\subsection{Thick client}
+We think that is better to delegate some of the Application Server logic to the single on-board systems, with the aim of reduce the number of request to the server which are basically related to the physical car and in a smaller part to the general system.
+The on-board system needs however to interact with the Application Server on questions in the context of the entire system.
+
+\subsection{Thin client}
+The mobile app and the website do not contain any kind of the system logic, and they need to forward all the request to the Application Server to have the job done.
+
+\subsection{Model-View-Control}
+This pattern is adopted to achieve a separation among the logic of the system, the presentation layer and the system model. This choice should favor the initial implementation and also future upgrades of the system.
+
+\section{Other design decision}
+\subsection{Maps}
+To quickly and faithfully dispose of a complete map service, is noticeable the ranking of \emph{Google Maps} as maps maker, addresses translator, maps updater and APIs provider to interface and take advantage of its functionalities. We think that now it is the best choice to adopt in this scope.
+
+
+\chapter{Algorithm design}
+This chapter includes some algorithms we want to describe. The code is described in the sections of the chapter.
+\lstinputlisting[breaklines, language=Java]{./dd/codeSource.java}
+
+\section{Compute Discount and overcharges}
+For first and second discount, on board system is able to detect if discount conditions are satisfied thanks to cars sensor and notify it to the application.
+For third discount, application waits five minutes after user exits the car: if at the end of 5 minutes car results in charging, therefore system applies discount, otherwise no discount is applied.
+For overcharges : car battery Level is notified by on-board system to application, so application can evaluate to apply overcharge or not. If no station is found near the car (noPowerGridStationNear returns \emph{false}), overcharges will be applied.
+Discount is saved as negative float between 0 and -1; overcharge is saved as positive float between 0 and 1.
+Application must hold only the minimum value (corresponding to the maximum discount obtained) and the maximum value (corresponding to the overcharge).
+At the end, application multiplies each element of this list for the total price computed before and sum them with total price.
+
+\section{Compute rental charge and total price}
+System computes rental charge and total price only after 5 minutes after user exits the car (system waits to understand if apply or not the third discount).
+After that application can compute total price as showed in the algorithm above.
+
+\chapter{User interface design}
+
+\section{UX diagram}
+In this section we include a UX diagram which allows to clearly identify the screens and their interaction. Screens related to \emph{employees} are available only in the website version.
+\begin{figure}[htb]
+\centering
+		\includegraphics[width=\textwidth, angle=90]{./dd/UXPowerEnJoy.pdf}
+		\caption{UX diagram. The dashed blue arrows describe actions that happen autonomously, after a timeout expiration or triggered by a specific event.}
+		\label{UX}
+\end{figure}
+
+\section{User interface concepts}
+In this section are shown the user interfaces conceived for the system.
+
+\subsection{Mobile app}
+Here some screens to illustrate the mobile application appearance.
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Registration}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/appRegistration.png}} \quad
+\subfloat[][\emph{Login}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/appLogin.png}}
+\caption{Mock-up }
+\label{fig:reglogMU}
+\end{figure}
+
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Car searching}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app1.png}} \quad
+\subfloat[][\emph{Available car}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app2.png}}
+\caption{Mock-up: in (b), purple pin stands for the shown car}
+\label{fig:searchCarMU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Confirm action}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app3.png}} \quad
+\subfloat[][\emph{Reservation confirm}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app4.png}}
+\caption{Mock-up }
+\label{fig:chresMU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Unlock car}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app5.png}} \quad
+\subfloat[][\emph{Report issue}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app551.png}}
+\caption{Mock-up }
+\label{fig:unlockMU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Issue confirm}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app51.png}} \quad
+\subfloat[][\emph{Rental status}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app6.png}}
+\caption{Mock-up }
+\label{fig:statusMU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Keep aside confirmation}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app7.png}} \quad
+\subfloat[][\emph{Error page}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app10.png}}
+\caption{Mock-up}
+\label{fig:keepMU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\subfloat[][\emph{Maintenance issue queue}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app8.png}} \quad
+\subfloat[][\emph{Issue details}.]
+{\includegraphics[width=.3\columnwidth]{./dd/mock/app9.png}}
+\caption{Mock-up: these screens are only in the maintenance employees' version}
+\label{fig:reglogMU}
+\end{figure}
+
+\subsection{Website}
+The website version basically contains all the features painted in the mobile app mock-ups. In addition, the website implements the management section of the application, which is not available in the mobile app. Here some examples of the designed screens.
+
+\begin{figure}[htb]
+\centering
+		\includegraphics[width=.8\textwidth]{./dd/mock/web1.png}
+		\caption{Mock-up: the user login form page on the website.}
+		\label{web1MU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+		\includegraphics[width=.8\textwidth]{./dd/mock/web2.png}
+		\caption{Mock-up: the car selection page on the website.}
+		\label{web2MU}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+		\includegraphics[width=.8\textwidth]{./dd/mock/web3.png}
+		\caption{Mock-up: the management statistic page on the website.}
+		\label{web3MU}
+\end{figure}
+
+
+\chapter{Requirements traceability}
+G1. Allows potential users to sign up the system (information, credential and payments data):
+\begin{itemize}
+\item UserManager
+\end{itemize}
+G2. Allows users to sign in and use the system:
+\begin{itemize}
+\item UserManager
+\end{itemize}
+G3. Allows users to find the locations of available cars near their own current position or near a specified address:
+\begin{itemize}
+\item MapsManager
+\item CarsManager
+\end{itemize}
+G4. Allows users to book a car for up one hour in advance to pick it up:
+\begin{itemize}
+\item ReservationManager
+\item CarsManager
+\end{itemize}
+G5. Allows users to tell the system they are nearby the car:
+\begin{itemize}
+\item RentalManager
+\item OnBoardSystemManager
+\end{itemize}
+G6. Allows a user to see the amount of his current ride through a screen on the car:
+\begin{itemize}
+\item OnBoardSystemManager
+\item RentalManager
+\end{itemize}
+G7. Allows users to notify the system a problem related to the car:
+\begin{itemize}
+\item IssueManager
+\end{itemize}
+G8. Allows users to keep aside their car for a little time (max 3 hours, under specific payment):
+\begin{itemize}
+\item KeepAsideManager
+\end{itemize}
+G9. Allows to compute the amount of each user's ride [starts debit, stops debit, discount]:
+\begin{itemize}
+\item RentalManager
+\end{itemize}
+G10. Allows to manage the opening and closing of the cars:
+\begin{itemize}
+\item RentalManager
+\item OnBoardSystemManager
+\end{itemize}
+G11. Allows to stimulate the users’ virtuous behaviors applying discounts on their last ride as and deter the malicious of the users applying extra fees as stated in the business rule section :
+\begin{itemize}
+\item RentalManager
+\item PaymentManager
+\end{itemize}
+G12. Allows to check the status of the cars as a prospectus/summary:
+\begin{itemize}
+\item CarsManager
+\end{itemize}
+G13. Allows the company to be notified if any on-board system detects a car failure:
+\begin{itemize}
+\item OnBoardSystemManager
+\item IssueManager
+\end{itemize}
+G14. Allows to edit settings such as prices per minute, discounts amount, “etc.”:
+\begin{itemize}
+\item SettingsManager
+\end{itemize}
+G15. Allows the company to bill users for services they benefited:
+\begin{itemize}
+\item PaymentManager
+\end{itemize}
+
+
+\chapter{Effort spent}
+
+\begin{center}
+    \begin{tabular}{cc}
+        \toprule
+	   \textbf{ Marco [h]  }& \textbf{ Daniele [h] }\\
+	   \midrule
+        35&40\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+\chapter{References}
+To draw up this document, we refer to the sample Design Documents provided in the lectures.
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
