@@ -1,0 +1,1269 @@
+\documentclass{scrreprt}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  keepspaces=true,
+}
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{green},
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{grey}]{$$},
+  moredelim=[is][\textcolor{grey}]{\%\%}{\%\%}
+}
+\usepackage{underscore}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+%\usepackage[bookmarks=true]{hyperref}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{multirow}
+
+
+\hypersetup{
+    bookmarks=false,    % show bookmarks bar?
+    pdftitle={Design Document},    % title
+    pdfauthor={Marco Sartini, Daniele Riva},                     % author
+    pdfsubject={Power EnJoy},                        % subject of the document
+    pdfkeywords={software engineering, car, power, project}, % list of keywords
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,       % color of internal links
+    citecolor=black,       % color of links to bibliography
+    filecolor=black,        % color of file links
+   % urlcolor=purple,        % color of external links
+    linktoc=page            % only page is linked
+}%
+\def\myversion{1.0 }
+\def\version{1.0}
+%\date{28/10/2016}
+\titlehead{\centering\includegraphics[width=6cm]{Logo_Politecnico_Milano.png}}
+\title{Integration Test Plan Document\\for\\PowerEnJoy}
+\date{\today\\\bigskip version \version}
+\author{Daniele Riva\thanks{matr. 875154}\and Marco Sartini\thanks{matr. 877979}}
+
+\begin{document}
+\pagestyle{headings}
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+
+\section{Purpose}
+This Integration Test Plan Document has the purpose to establish an acceptable program of tests to be performed on the developed modules and on the overall system.
+
+The aim of the tests is to solicit the system and try to find incompleteness, bugs, modules compatibility problems, also minimizing the possibility to obtain critical and wrong states.
+Specifically, this document gathers a number of integration tests to attempt to ensure the rightness of the behaviors among components.
+
+\section{Scope}
+The project \emph{Power EnJoy} is a platform based on mobile and web application thought to offer a car sharing service with electrical powered cars. 
+\section{Definitions, acronyms, abbreviations}
+\begin{description}
+\item[RASD] requirements analysis and specification document;
+\item[DD] design document;
+\item[DBMS] data base management system;
+\item[Arquillian] is a Java Integration Test framework. Details at \url{http://www.arquillian.org};
+\item[Mockito] is a mocking framework. Details at \url{http://site.mockito.org};
+\item[JUnit] is a simple framework to write repeatable tests. Based on xUnit architecture. Details at \url{http://junit.org}.
+\end{description}
+\section{Reference documents}
+\begin{itemize}
+\item RASD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/rasdPowerEnJoy.pdf}
+\item DD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/dd.pdf}
+\end{itemize}
+
+\chapter*{Revision history}
+\begin{center}
+    \begin{tabular}{lccc}
+        \toprule
+	   \textbf{ Name }& \textbf{ Date  }& \textbf{ Reason For Changes }& \textbf{ Version}\\
+        \midrule
+	     Marco e Daniele & 10/01/2017 & Starting & 1.0\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+
+\chapter{Integration strategy}
+
+\section{Entry criteria}
+Before the integration testing phase begin, all the modules have to be properly unity tested. This means that every single module should work right independently by the others, that is, it should return the expected results related to the input provided.
+To speed up the starting of this step, it is not mandatory to have all the modules fully developed, but it is sufficient to dispose of the subparts that compose a thread. In some cases, although, a ordered schedule is requested.
+In particular, all the methods listed and described in the DD should be tested.
+
+\section{Elements to be integrated}
+The components to be integrated are:
+
+\begin{enumerate}
+\item MapManager, to be integrated with the CarsManager;
+\item RentalManager, to be integrated with CarsManager, KeepAsideManager, OnBoardSystemManager, UserManager, PaymentManager and DataManager;
+\item OnBoardSystemManager, to be integrated with the RentalManager;
+\item ReservationManager, to be integrated with CarsManager, PaymentManager, UserManager RentalManager and DataManager;
+\item KeepAsideManager, to be integrated with RentalManager, CarsManager and DataManager;
+\item IssueManager, to be integrated with the UserManager, CarsManager and DataManager.
+
+\end{enumerate}
+
+The other components are standalone, or at least they only serve the other components.
+To be precise, the ones which do not consult nor delegate to other components except the Data Manager are: UserManager, SettingsManager and PaymentManager.
+
+\section{Integration testing strategy}
+The modules are widely related each other. This means that the more traditional testing approaches are a bit overcharged by extra stubs and drivers.
+This consideration leads us to invest in a more efficient test process.
+
+Then, we opt for the \emph{thread approach}.
+
+We adopt also a critical-module-first approach before actually start the thread testing, to proper check the rightness of the interaction between DBMS and DataManager, between all the components and the DataManager.
+
+Benefits granted by the thread approach allows, as soon as the methods and classes related to a thread are ready developed, to be immediately tested. It is not necessary that a component is fully developed, but it is enough that are developed the involved subparts in the thread.
+
+In addition, less if none stubs and drivers are required and if a component in a thread doesn't work, it is rational to exclude the subparts already tested in the other threads simplifying the resolution.
+
+\section{Sequence of function integration}
+\subsection{DBMS and DataManager}
+This test should be the first to be performed because the entire system is basically based on the data manipulation. All the thread considered below write and read data from the database through the DataManager.
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/DataComponentDBMS-Testing.pdf}
+\end{center}
+
+To test the DataManager, the component will be represented by drivers, one for each of them.
+The drivers will perform typical queries to check the correctness of the results.
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/DataComponent-Testing.pdf}
+\end{center}
+
+\subsection{Threads}
+Every identified thread is briefly described to clarify the its purpose and which components methods are involved.
+In the image, the colors stress the parts of the components which contribute to build up a thread (user-visible functionality).
+Some methods are shared by more than one thread, because many thread might need to employ the same methods.
+
+Colors caption:
+\begin{description}
+\item[yellow] indicates the Rental functionality;
+\item[orange] indicates the Reservation functionality;
+\item[dark blue] indicates the End of the reservation functionality;
+\item[pink] indicates the timeout triggered end of reservation functionality;
+\item[green] indicates the Keep Aside functionality;
+\item[red] indicates the start Rental functionality;
+\item[light blue] indicates the end of the rental and related billing and payment functionality;
+\item[brown] indicates the Map functionality;
+\item[gray and rose] indicate the Issue functionality;
+\end{description}
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/fullView.pdf}
+\end{center}
+
+Threads do no need to be tested and verified in a particular order because of the inherent feature of independence, but we suggest to adopt the following:
+\begin{enumerate}
+\item Issues;
+\item Map;
+\item Rental;
+\item Reservation;
+\item Start rental;
+\item End reservation;
+\item Keep Aside;
+\item End rental.
+\end{enumerate}
+
+Note on the \emph{OnBoardSystemManager}: this component, despite in the reality will be installed on the cars, is tested as it were local, by setting up the test environment at this purpose. This because test the real car means to have the car ready, and also the communication infrastructure working.
+
+%It is however allowed to directly mock the OnBoardSystemManager to proceed with the thread tests, 
+
+\subsubsection{Issues}
+The two components to be integrated are the \emph{IssueManager} and the \emph{CarsManager}.
+
+A request to add an issue is sent by the user: the \emph{addIssue} method is activated, which is in charge to store an issue in the database, then it involves the \emph{CarsManager} who is in charge to update the state of the car (which is received as parameter in the original request).
+
+If no exceptions are raised, the \emph{IssueManager} returns successfully to the caller.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/00notify.pdf}
+\end{center}
+
+\subsubsection{Map}
+It integrates with the \emph{CarsManager} while building the map, to get the only available cars to put into that map.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/01map.pdf}
+\end{center}
+
+\subsubsection{Rental}
+When a car has been chosen for a rental, and is confirmed, a request to apply for a rental is sent by the client. It is activated the \emph{RentalManager} via the \emph{addRental} method: the method is in charge to verify the availability of the car, thanks to the \emph{CarsManager} respective query method; then in case of positive answer, the \emph{CarsManager} is asked to update the car state; at the end, if no raised exception, the component generates an unlock code which is annotated in the \emph{OnBoardSystemManager} via the \emph{setUnlockCode}. Again if no raised exceptions, the unlock code is also returned to the client.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/02rental.pdf}
+\end{center}
+
+\subsubsection{Unlock \& Start}
+This thread is launched by the request of verifying the code. Once the code locally matches, the OnBoardSystem opens the door and listens for the engine to power on. In that moment, a request to start a rental is sent to the server, who refers to the \emph{RentalManager}. The \emph{RentalManager} stores on the database the data and it is ready to report the charging fees to the user.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/03start.pdf}
+\end{center}
+
+\subsubsection{Keep aside}
+When a ``keep aside'' request is delivered to the server, the \emph{KeepAsideManager} is activated, via the \emph{addKeepAside} method. That method contacts the \emph{CarsManager} to update the state of the car and, if no exceptions, starts the ``keep aside'' interval storing data in the database. If no exceptions, it returns to the \emph{OnBoardSystemManager}, which cares to check the car to be empty and locks the doors.
+When a keep aside is going to be stopped, the user send a request to stop the ``keep aside'': the \emph{KeepAsideManager} is involved via the method \emph{stopKeepAside}which refers to the \emph{CarsManager} to get the state updated and if no exceptions, the doors are unlocked by the \emph{OnBoardSystemManager}.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/04keep.pdf}
+\end{center}
+
+\subsubsection{End rental}
+When a rental ends, the \emph{OnBoardSystemManager} it is unawakened because the engine turn off, then it checks the passengers and is mandatory that the number is 0. So it locks the doors and invokes the \emph{RentalManager} to end the rental via the \emph{endRental} method. The \emph{RentalManager} checks and eventually assigns discounts invoking its method \emph{assignDiscount}, then the \emph{PaymentManager} is involved to provide a bill and interact with the external Payment Handler.
+
+Furthermore, the car state is updated by the \emph{CarsManager}. There is a full return from the stack to reassure the \emph{OnBoardSystemManager}.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/05end.pdf}
+\end{center}
+
+\subsubsection{Reservation}
+A car is chosen by the user, and is given to the \emph{ReservationManager} who cares to add the reservation and to start the timeout. The \emph{CarsManager} is at this point involved to have the car state updated; also the \emph{UserManager} is involved to have the user status updated. At the end, the \emph{ReservationManager} triggers the timeout.
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/07res.pdf}
+\end{center}
+
+\subsubsection{End reservation \& start rental}
+Case 1: A user decides to regularly begin a rental of his reserved car.
+
+Case 2: If the reservation timeout expires, the reservation ends, so the \emph{ReservationManager} will free the car from the reservation and will proceed to bill. 
+
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/06endRes.pdf}
+\end{center}
+\begin{center}
+		\includegraphics[width=\textwidth]{./thread/08timeout.pdf}
+\end{center}
+
+\chapter{Individual steps and test description}
+A schematic description of the test cases to be performed in order to meet the objectives of the integration test phase.
+
+\section{Data Manager}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & ID0T1\\
+\midrule
+Test items & DataManager $\longrightarrow$ DBMS\\
+\midrule
+Input specification & Queries ( insert, update, delete)  on database tables \\
+\midrule
+Output specification & Correct result of each query\\
+\midrule
+Environmental needs & DBMS\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T1\\
+\midrule
+Test items & Driver UserManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of UserManager to add new user or update data user \\
+\midrule
+Output specification &  DataManager generates queries on User table \\
+\midrule
+Environmental needs & UserManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier &I0T2 \\
+\midrule
+Test items & Driver CarsManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of CarsManager to update cars State \\
+\midrule
+Output specification &  DataManager generates queries on Cars table\\
+\midrule
+Environmental needs & CarsManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T3\\
+\midrule
+Test items & Driver RentalManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of RentalManager to add new rental or update data of existing rental \\
+\midrule
+Output specification &  DataManager generates queries on Rental table \\
+\midrule
+Environmental needs & RentalManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T4\\
+\midrule
+Test items & Driver ReservationManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of ReservationManager to add new reservation or update data of existing reservation \\
+\midrule
+Output specification & DataManager generates queries on Rental table \\
+\midrule
+Environmental needs & ReservationManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T5\\
+\midrule
+Test items & Driver KeepAsideManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of KeepAsideManager to add new keepAside of a rental or update data of existing keepAside \\
+\midrule
+Output specification & DataManager generates queries onKeepAside table \\
+\midrule
+Environmental needs & KeepAsideManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T6\\
+\midrule
+Test items & Driver PaymentManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of PaymentManager to add a new bill \\
+\midrule
+Output specification & DataManager generates queries on Payment table \\
+\midrule
+Environmental needs & PaymentManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T7\\
+\midrule
+Test items & Driver IssueManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls method of IssueManager to add a new issue or update an issue state \\
+\midrule
+Output specification & DataManager generates queries on Payment table \\
+\midrule
+Environmental needs & IssueManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I0T8\\
+\midrule
+Test items & Driver SettingsManager $\longrightarrow$ DataManager\\
+\midrule
+Input specification & Calls methods of SettingsManager to manage prices \\
+\midrule
+Output specification & DataManager generates queries on Settings table \\
+\midrule
+Environmental needs & SettingsManager driver\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Issue}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I1T1\\
+\midrule
+Test items & Issue Manager $\longrightarrow$ Car Manager\\
+\midrule
+Input specification & Call the addIssue method\\
+\midrule
+Output specification & The issue is added in the queue of the issue to solve; the car state is changed in ... \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{IssueManager $\longrightarrow$  addIssue(user, car, description, phoneNumber)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised\\
+\midrule
+Description is a empty string & An InvalidArgumentException is raised, the problem must be specified\\
+\midrule
+Phone number is an incorrect number & An InvalidArgumentException is raised \\
+\midrule
+Set of valid parameter & Creates an instance of issue with IssueState as \emph{ToSolve} and then writes it in the database \\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{CarsManager $\longrightarrow$  setState(car, state)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised \\
+\midrule
+Incorrect parameter: a car or a state that not exists & An InvalidArgumentException is raised \\
+\midrule
+Valid Parameters & Car state is changed into the new state and the car record in the database is updated \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Maintenance solve issues}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I1T2\\
+\midrule
+Test items & Issue Manager $\longrightarrow$ Car Manager\\
+\midrule
+Input specification & A call to setIssueState\\
+\midrule
+Output specification & The car state is updated accordingly to the issue outcome\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{IssueManager $\longrightarrow$ setIssueState(issue, man, state)}}\\
+\toprule
+
+One or more parameter are null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: the issue is already solved or is being solved & An IllegalIssueException is raised\\
+\midrule
+Invalid parameter: the man is already busy in another work & An IllegalIssueException is raised\\
+\midrule
+Valid parameter & Assigns the state parameter (InResolution or Solved) to the issue state and updates the database\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Map}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I2T1\\
+\midrule
+Test items & MapManager $\longrightarrow$ CarsManager\\
+\midrule
+Input specification & Call to the generateMap method\\
+\midrule
+Output specification & The generated map contains the available cars, if any \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{MapManager $\longrightarrow$ searchAvailableCar(listCar)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Empty List & Returns empty list, no cars are available\\
+\midrule
+Valid parameter: list with no available cars & Returns a empty list\\
+\midrule
+Valid parameter: list contains available cars & Returns a list with only available cars\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{MapManager $\longrightarrow$ generateMap(listCar,position)}}\\
+\toprule
+
+One or more parameter are null & A NullArgumentException is raised\\
+\midrule
+Empty List & An IllegalMapException is raised\\
+\midrule
+A invalid position & An IllegalArgumentException is raised\\
+\midrule
+Valid parameters: no empty List and valid position & Returns a list of the available cars into the default distance\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Rental}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I3T1\\
+\midrule
+Test items & RentalManager $\longrightarrow$ CarsManager, UserManager, OnBoardSystemManager\\
+\midrule
+Input specification & Call to the addRental method\\
+\midrule
+Output specification & The availability of the car is checked and the setState is called, then the user is set to busy, an unlock code is generated and sent to the car.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  addRental(user, car)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised \\
+\midrule
+Car is not available (checkAvailability returns false ) & An InvalidRequestException is raised, the car is unavailable\\
+\midrule
+User is already busy & An InvalidRequestException is raised, user is renting or reserving a car in that moment \\
+\midrule
+Set of valid parameter & Creates an instance of new rental; the car state is changed (from available state to rental state), it generates unlock code and then the rental is written to the database \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  generateUnlockCode(rental)}}\\
+\toprule
+
+Valid Parameter & Generates a code to unlock the car and associates it to the rental \\
+\midrule
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Incorrect parameter: finished rental & An InvalidArgumentException is raised\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{CarsManager $\longrightarrow$  checkAvailability(car)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised \\
+\midrule
+Car state is not `AVAILABLE' & Function returns False \\
+\midrule
+Car state is `AVAILABLE' & Function returns True \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$  setBusy(user, state)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised \\
+\midrule
+Valid parameter & If state=true, it sets the user busy flag to \emph{true} else if state = false, it sets the user busy flag to \emph{false} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{OnBoardSystemManager $\longrightarrow$  setUnlockCode(code)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised \\
+\midrule
+Incorrect parameter: empty String code & An InvalidArgumentException is raised\\
+\midrule
+Valid parameter & Sets code to unlock the car\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Unlock \& Start rental}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I4T1\\
+\midrule
+Test items & OnBoardSystemManager $\longrightarrow$ RentalManager;  RentalManager $\longrightarrow$ PaymentManager;\\
+\midrule
+Input specification & A code is injected in the OnBoardSystemManager, to have the code checked. Power on the engine.\\
+\midrule
+Output specification & If the code is correct, the doors unlock and when the engine powers on the rental starts.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{OnBoardSystemManager $\longrightarrow$  checkCode(code)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Code is incorrect (not equal to already saved code) & Returns false: unlock code is wrong\\
+\midrule
+Valid parameter & Returns true: code saved and code parameter are equal\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{OnBoardSystemManager $\longrightarrow$  setLockDoors(state)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+State value: False & Sets the doors locked (false); car can't be opened\\
+\midrule
+State value: True & Sets the doors unlocked (true); car is opened\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{OnBoardSystemManager $\longrightarrow$  checkEngine()}}\\
+\toprule
+
+No parameter & Simulates the engine state: if the engine state is set to ``run'' it returns \emph{true} else it returns \emph{false}\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  getRental(car)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: the car is not involved in any rental & An IllegalArgumentException is raised\\
+\midrule
+Valid parameter & Gets the rental ongoing with that car  \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  startRental(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: ended rental & An IllegalArgumentException is raised\\
+\midrule
+Valid parameter & Sets the time when the rental starts and the value stored in the database is updated\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{PaymentManager $\longrightarrow$  getCurrentCharging (rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: rental is already finished & An IllegalArgumentException is raised \\
+\midrule
+Valid parameter & Gets total charging of ongoing rental  (included all keepAsides and discounts) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Keep aside}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I5T1\\
+\midrule
+Test items & KeepAsideManager $\longrightarrow$ RentalManager, CarsManager;  RentalManager $\longrightarrow$ OnBoardSystemManager;\\
+\midrule
+Input specification & Call to the addKeepAside method\\
+\midrule
+Output specification & A keep aside is applied to the car. and the doors are locked\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I5T2\\
+\midrule
+Test items & KeepAsideManager $\longrightarrow$ RentalManager, CarsManager;  RentalManager $\longrightarrow$ OnBoardSystemManager;\\
+\midrule
+Input specification & Call to the stopKeepAside method\\
+\midrule
+Output specification & The doors are unlocked, and the  car is ready to restart a rental.\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{KeepAsideManager $\longrightarrow$  addKeepAside(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: keep aside is not allowed for this rental at this moment & An IllegalKeepAsideException is raised \\
+\midrule
+Invalid parameter: checkKeepAsideOnGoing returns false & An IllegalKeepAsideException is raised, a keep aside is ongoing\\
+\midrule
+Valid parameter & Creates a new instance of keepAside and adds it to the rental, then the keepAside is written to the database\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{KeepAsideManager $\longrightarrow$  startKeepAside(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid Parameter : rental has no keepAside to start, rental has only finished keepaside & A IllegalKeepAsideException is raised\\
+\midrule
+Valid Parameter & Sets time when keepAside started and the value in the database is updated\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{KeepAsideManager $\longrightarrow$  stopKeepAside(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid Parameter : rental has no keepAside ongoing, rental has only finished keepaside & A IllegalKeepAsideException is raised\\
+\midrule
+Valid parameter & Set time that keepAside ends, set keepaside as finished and database value is updated\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$ checkKeptAsideOnGoing(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Valid parameter	 & Return true if there is a keepaside on going, otherwise return false\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{OnBoardSystemManager $\longrightarrow$  checkNobodyInTheCar()}}\\
+\toprule
+
+No parameter & If there is nobody in the car, calls the \emph{lockDoors}, otherwise it does nothing\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{End rental}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I6T1\\
+\midrule
+Test items & OnBoardSystemManager $\longrightarrow$ RentalManager; RentalManager $\longrightarrow$ PaymentManager, CarsManager;\\
+\midrule
+Input specification & The engine of the car is powered off\\
+\midrule
+Output specification & The doors are locked, the bill is stored\\
+\midrule
+Environmental needs & The stub to simulate the Payment Handler\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  endRental(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Valid parameter & Calls the \emph{assignDiscount} function and assigns the value to the rental, then sets the time when rental is ended and updates the database value.
+
+Then calls the method to update the car state and to compute the final price\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{RentalManager $\longrightarrow$  assignDiscount(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter : not finished rental & A IllegallArgumentException is raised\\
+\midrule
+Valid parameter : finished rental & Assigns to the rental the list of the possible discount that user may receive. Now rental has a list (empty or with one or more value) containing discount values.\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{PaymentManager $\longrightarrow$  computeKeepAsidePrice(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Valid parameter: rental with empty List of keepAside & Returns 0 (zero)  \\
+\midrule
+Valid parameter: rental with no empty List of KeepAside & Returns the total cost of all keepAsides: this cost is computed as the price per minutes of keepAside times the duration in minutes \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{PaymentManager $\longrightarrow$  computeRentalPrice(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised \\
+\midrule
+Invalid parameter: a rental is not ended yet & An IllegalArgumentException is raised \\
+\midrule
+Valid parameter: ended rental & Returns only the cost of the rental: this cost is computed as the price per minutes of rental times the duration in minutes\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{PaymentManager $\longrightarrow$  computeTotalPrice(rental)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: a rental is not ended yet & An IllegalArgumentException is raised\\
+\midrule
+Valid parameter: ended rental & Returns the total cost of the rental $\longrightarrow$ sum rental cost and keepAside cost and applies discounts: it add the maximum value of discounts (overcharge) and the minimum value of discounts (best discount)\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{PaymentManager $\longrightarrow$  addBill(rental)}}\\
+\toprule
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: a rental is not ended yet & An IllegalArgumentException is raised \\
+\midrule
+Valid parameter: ended rental & Creates a bill of the rental and writes it to the database; then notifies the amount of the bill to the external Payment Handler\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Reservation}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I7T1\\
+\midrule
+Test items & ReservationManager $\longrightarrow$ CarsManager, UserManager\\
+\midrule
+Input specification & Call to the addReservation method\\
+\midrule
+Output specification & The user is set to busy, the reservation is stored in the database, the timeout is triggered, the chosen car is correctly reserved\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{ReservationManager $\longrightarrow$  startTimeout(reservation)}}\\
+\toprule
+
+No parameter & Starts the hour-long countdown \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{ReservationManager $\longrightarrow$  addReservation(user, car)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised\\
+\midrule
+Car is not available (checkAvailability returns false) & An InvalidRequestException is raised, car is unavailable \\
+\midrule
+User is already busy & An InvalidRequestException is raised, user is renting or reserving a car in this moment \\
+\midrule
+Set of valid parameter & Creates an instance of reservation, calls setState of car to change it (from available state to reserve state), then the reservation is written to the database \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{End reservation}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}lX}
+\toprule
+Test case identifier & I8T1\\
+\midrule
+Test items & ReservationManager $\longrightarrow$ RentalManager; RentalManager $\longrightarrow$ OnBoardSystemManager, CarsManager;\\
+\midrule
+Input specification & A call to getReservation\\
+\midrule
+Output specification & The car is now in a rental state, with the associate unlock code, ready to be unlocked\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Below the description of the involved method calls.
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{ReservationManager $\longrightarrow$  getReservation(user)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: the user is not involved in any reservation& An IllegalArgumentException is raised\\
+\midrule
+Valid parameter & Gets the reservation related to the user \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{ReservationManager $\longrightarrow$ endReservation(reservation)}}\\
+\toprule
+
+Parameter is null & A NullArgumentException is raised\\
+\midrule
+Invalid parameter: reservation is already finished & An IllegalArgumentException is raised\\
+\midrule
+Valid parameter & Set the time that reservation is finished and update database value.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\section{Registration}
+This is a supplementary test description which refers to the unit tests to be carry out on the User Manager.
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$ verifyAlreadyRegistered(name, surname, mail, cf)}}\\
+\toprule
+One or more parameters are null &A NullArgumentException is raised \\
+\midrule
+Mail already used & Return false, user already registered \\
+\midrule
+CF already used & Return false, user already registered \\
+\midrule
+An incorrect mail address or name or surname & An InvalidArgumentException is raised \\
+\midrule
+An incorrect CF (no related person) & An InvalidArgumentException is raised \\
+\midrule
+Set of valid parameters & Return true, registration can continue and verify driverLicense and code Account \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$  verify(driverLicense,codeAccount)}}\\
+\toprule
+One or more parameters are null & A NullArgumentException is raised\\
+\midrule
+DriverLicense already used & Return false, user already registered\\
+\midrule
+Incorrect driverLicense or code account & An InvalidArgumentException is raised\\
+\midrule
+Set of valid parameters & Return true, registration is finished and user can be added to the system\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$  generatePassword()}}\\
+\toprule
+No input parameter & Create and return a password for new user \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$  addUser(name, surname, mail, cf, driverLicense, codeAccount)}}\\
+\toprule
+
+One or more parameters are null & A NullArgumentException is raised \\
+\midrule
+One or more parameters are incorrect  ( verifyAlreadyRegistered  or verify returns false ) & An InvalidRegistrationException is raised, user is already registered \\
+\midrule
+One or more parameters are incorrect  ( verify or verifyAlreadyRegistered raise an exception ) & Raised exception is propagated, user inserts incorrect parameter \\
+\midrule
+Set of valid parameters ( verify and verifyAlreadyRegistered returns true ) & Create a new user with parameters and password obtained from generatePassword and then user is added to the user's list and is written in the database \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{comment}
+\begin{center}
+\begin{tabularx}{\columnwidth}{>{\bfseries}XX}
+\toprule
+\multicolumn{2}{>{\bfseries}c}{\textit{UserManager $\longrightarrow$ verifyAlreadyRegistered(name, surname, mail, cf)}}\\
+\toprule
+
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{comment}
+
+
+\chapter{Tools and test equipment required}
+\subsection{Tools}
+Tests are a significant key to produce stable and reliable systems, but to be effective they have to be carried out thoroughly. The best way to reduce the efforts, focusing on the goals, is to rely on tools optimized for that purpose.
+
+Our advice is to adopt the \emph{JUnit} framework flanked by the \emph{Arquillian} integration testing framework, because of the Java environment that characterizes the system components.
+
+\emph{Arquillian} is an innovative and highly extensible testing platform for the JVM that enables developers to easily create automated integration, functional and acceptance tests for Java middleware. This tool will help to verify that components interact each other in the designed way, producing the expected behaviors.
+In particular, 
+Because of our experience and based also on the guidelines of the tool, to add the framework to the system is better to work with \emph{Apache Maven}.
+
+\emph{JUnit} is a proven framework which allows to deal with test cases gracefully, directly in the developing environment, to speed up and simplify developers' and testers' life. Then it is clear that this tool will be used to support tests by Arquillian.
+
+To perform the unit tests, we suggest to adopt the \emph{Mockito} framework to take advantage of its flexibility and its power in the simulation of objects and behaviors of classes and methods.
+
+\chapter{Program stubs and test data required}
+\section{Program stubs and drivers}
+The integration strategy we chose does not require as much stubs or drivers as the bottom-up or top-down strategies.
+A stub needed is the one which simulates the external Payment Handler behavior.
+We also need drivers to test the \emph{DataManager}, which simulates the behavior of the components in the writing and reading operations.
+
+\section{Test Data}
+Some test data are required to tackle the planned tests, and of course this data have to especially bring to light the plight of the test cases.
+
+When stated ``fair'' is intended that there are at least one data which satisfies the condition required and at least a bunch of data that are considered safe by the test designers (that is, supposed to be regular, standard, correct).
+Here below a list to be complied:
+\begin{itemize}
+
+\item A fair amount of data related to the Map thread, including instances presenting:
+	\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item invalid positions;
+	\item invalid cars;
+	\item available cars;
+	\item unavailable cars;
+	\item PowerGrid stations;
+	\item SafeAreas;
+	\end{itemize}
+
+\item A fair amount of data related to the Issue thread, including instances presenting:
+	\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item invalid man;
+	\item invalid car states;
+	\item invalid issue states;
+	\item invalid phone numbers;
+	\item invalid description;
+	\end{itemize}
+
+\item A fair amount of data related to the Rental thread, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item absurd plate number;
+	\item unavailable cars;
+	\item user involved in a rental yet;
+	\end{itemize}
+
+\item A fair amount of data related to the Unlock \& start rental, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item illegal code;
+	\item terminated rental;
+	\item available car;
+	\end{itemize}
+
+\item A fair amount of data related to the Keep aside, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item terminated rental;
+	\item available car;
+	\end{itemize}
+
+\item A fair amount of data related to the End rental, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item terminated rental;
+	\item a non-terminated rental;
+	\end{itemize}
+
+\item A fair amount of data related to the Reservation, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item unavailable car;
+	\item busy user;
+	\item invalid reservation;
+	\end{itemize}
+
+\item A fair amount of data related to the End reservation, including instances presenting:
+\begin{itemize}
+	\item null object;
+	\item null fields;
+	\item available car;
+	\item invalid reservation;
+	\end{itemize}
+\end{itemize}
+
+\chapter{Effort spent}
+
+\begin{center}
+    \begin{tabular}{cc}
+        \toprule
+	   \textbf{ Marco [h]  }& \textbf{ Daniele [h] }\\
+	   \midrule
+        26&22\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+\chapter{References}
+To draw up this document, we refer to the sample Intergation Test Plan Document provided in the lectures.
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
