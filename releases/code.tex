@@ -1,0 +1,527 @@
+\documentclass{scrreprt}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  keepspaces=true,
+}
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{green},
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{grey}]{$$},
+  moredelim=[is][\textcolor{grey}]{\%\%}{\%\%}
+}
+\usepackage{underscore}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+%\usepackage[bookmarks=true]{hyperref}
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{hhline} 
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{colortbl}
+
+\hypersetup{
+    bookmarks=false,    % show bookmarks bar?
+    pdftitle={Design Document},    % title
+    pdfauthor={Marco Sartini, Daniele Riva},                     % author
+    pdfsubject={Power EnJoy},                        % subject of the document
+    pdfkeywords={software engineering, car, power, project}, % list of keywords
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,       % color of internal links
+    citecolor=black,       % color of links to bibliography
+    filecolor=black,        % color of file links
+   % urlcolor=purple,        % color of external links
+    linktoc=page            % only page is linked
+}
+\def\myversion{1.0 }
+\def\version{1.0}
+%\date{28/10/2016}
+\titlehead{\centering\includegraphics[width=6cm]{../Logo_Politecnico_Milano.png}}
+\title{Code Inspection Document\\for\\Apache OFBiz\textsuperscript{\textregistered}\\during the PowerEnJoy project}
+\date{\today\\\bigskip version \version}
+\author{Daniele Riva\thanks{matr. 875154}\and Marco Sartini\thanks{matr. 877979}}
+
+\begin{document}
+\pagestyle{headings}
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+
+\section{Purpose}
+This document reports the code analysis performed on the \texttt{ScrumService} class, part of the Apache OFBiz project, as explained in details through the chapters.
+The code inspection has the scope of review the code to find out possible mistakes.
+
+\section{Scope}
+This document is a part of the Software Engineering II project, which main purpose was to design a platform based on mobile and web application thought to offer a car sharing service with electrical powered cars called \emph{Power EnJoy}. 
+
+
+\section{Definitions, acronyms, abbreviations}
+\begin{description}
+\item[EOF] end of file;
+
+\end{description}
+
+\begin{comment}
+\section{Reference documents}
+\begin{itemize}
+\item RASD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/rasdPowerEnJoy.pdf}
+\item DD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/dd.pdf}
+\item ITPD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/itpd.pdf}
+\end{itemize}
+\end{comment}
+
+\chapter*{Revision history}
+\begin{center}
+    \begin{tabular}{lccc}
+        \toprule
+	   \textbf{ Name }& \textbf{ Date  }& \textbf{ Reason For Changes }& \textbf{ Version}\\
+        \midrule
+	     Marco e Daniele & 05/02/2017 & Initial & 1.0\\
+	\bottomrule
+    \end{tabular}
+\end{center}
+
+\chapter{Code description}
+
+\section{Assigned class and methods}
+
+Our group was assigned the \texttt{ScrumService.java} in the \texttt{org.apache.ofbiz.scrum} package.
+
+The path to the class in the provided wrapper is: \path{apache-ofbiz-16.11.01/specialpurpose/scrum/src/main/java/org/apache/ofbiz/scrum/ScrumServices.java}
+
+\section{Functional role}
+
+\subsection{Apache OFBiz\textsuperscript{\textregistered}}
+
+Apache OFBiz (contraction for \emph{Open For Business}) is a large software, mainly for enterprises, created to support them in the automation of their processes, from ERP to CRM, SCM and similar, basically in the information systems section.
+It is open source (under the \emph{Apache License Version 2.0}) and it is a customizable, really flexible framework to solve business needs.
+
+\subsection{Scrum}
+
+Scrum is a framework from Ken Schwaber and Jeff Sutherland, conceived by Hirotaka Takeuchi and Ikujiro Nonaka in the 1986. It represents a new approach in software (and widely, products) development, standing on the empiric evidence of requirements volatility.
+
+To adapt the developing processes to the unavoidable and unforeseen changes, the \emph{Scrum} approach acts as a sort of  a forerunner of the \emph{agile} method. The approach is based on an iterative, incremental, flexible and holistic development strategy, where a development team works as a unit to reach a common goal.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{ScrumProcess.png}
+\caption{The Scrum process.\\Image by Lakeworks (Own work) [GFDL or CC BY-SA 4.0-3.0-2.5-2.0-1.0], via Wikimedia Commons}\label{fig:1}
+\end{figure}
+
+
+
+To manging the file reviews and the multi-developer editing during the whole process, the framework rely on a \emph{version control system}, with the aim of having a coordinated, automated and consistent project.
+
+\subsection{Scrum in OFBiz}
+
+The product includes, along with many business solutions, also an implementation of the Scrum framework.
+
+Of course as previously stated about a version controller, this implementation relies (without surprise) on the Apache \emph{Subversion} system.
+The methods of the analyzed class manage the interaction between OFBiz and the version controller.
+In particular, they interact with the \texttt{svn} client to mainly synchronize the internal database of OFBiz with the revisions in the Subversion.
+
+\begin{description}
+\item[linkToProduct] this method receives as parameters a \texttt{DispatchContext} object and a \texttt{Map} of objects to strings; it returns a \texttt{Map} of objects to strings.
+
+The aim of this method is to produce a link between a particular subject received by the caller context and a product in the database; if the product is found, it will be connected to a special \texttt{CommunicationEvent} entity, also associated to the login of the user responsible for the call;
+
+\item[viewScrumRevision] this method receives as parameters a \texttt{DispatchContext} object and a \texttt{Map} of objects to strings; it returns a \texttt{Map} of objects to strings.
+
+The aim of this method is to acquire the log of the revision requested and the differences between the last revision and the previous one.
+
+This method bring the path of the repository and the revision number from the parameter Map, it builds the proper command to be invoked by the console to get the commits log and it concatenates all those logs into a String; the same operation is executed with the \emph{diff} specification to get the differences between the two revisions.
+It returns an object containing the results of the operations and a bunch of supplementary information.
+
+\item[retrieveMissingScrumRevision] this method receives as parameters a \texttt{DispatchContext} object and a \texttt{Map} of objects to strings; it returns a \texttt{Map} of objects to strings.
+
+The aim of this method is to maintain the OFBiz database updated with respect to the revisions on Subversion: this method looks for revisions in the svn but not yet present in the database.
+
+If the task ends successfully, it is returned a success entity.
+
+\item[removeDuplicateScrumRevision] this method receives as parameters a \texttt{DispatchContext} object and a \texttt{Map} of objects to strings; it returns a \texttt{Map} of objects to strings.
+
+The aim of this method is to remove from the OFBiz database duplicate revisions.
+
+If the task ends successfully, it is returned a success entity.
+
+\end{description}
+
+
+\chapter{Code issues}
+in this chapter there is a description of the bad and good practices adopted by the Apache OFBiz developers in the writing of the \texttt{ScrumService} class.
+
+\section{Checklist issues}
+
+\begin{comment}
+
+\begin{itemize}
+\item [line 18] is longer than 80 characters: it is 81;
+\item [line 51] the name \texttt{module} is not compliant with the constant pattern: is should be \texttt{MODULE};
+\item [line 52] the name \texttt{resource} is not compliant with the constant pattern: is should be \texttt{RESOURCE};
+\item [line 53] it is longer than 80 characters: it is 113;
+\item [line 53] parameter\texttt{ctx} should be final;
+\item [line 53] parameter \texttt{context} should be final;
+\item [line 55] the typecast is not followed by whitespace;
+\item [line 57] is longer than 80 characters: it is 83;
+\item [line 58] is longer than 80 characters: it is 88;
+\item [line 62] is longer than 80 characters and also longer than 120: it is 167;
+\item [line 70] is longer than 80 characters and also longer than 120: it is 128;
+\item [line 73] is longer than 80 characters: it is 99;
+\item [line 74] is longer than 80 characters and also longer than 120: it is 134;
+\item [line 75] is longer than 80 characters and also longer than 120: it is 135;
+\item [line 77] is longer than 80 characters and also longer than 120: it is 224;
+\item [line 78] is longer than 80 characters: it is 89;
+\item [line 79] is longer than 80 characters and also longer than 120: it is 212;
+\item [line 83] is longer than 80 characters and also longer than 120: it is 241;
+\item [line 83] commas are not followed by whitespace;
+\item [line 84] is longer than 80 characters: it is 101;
+\item [line 85] is longer than 80 characters: it is 82;
+\item [line 86] is longer than 80 characters: it is 82;
+\item [line 87] is longer than 80 characters and also longer than 120: it is 252;
+\item [line 90] is longer than 80 characters: it is 106;
+\item [line 91] is longer than 80 characters and also longer than 120: it is 172;
+\item [line 94] is longer than 80 characters and also longer than 120: it is 123;
+\item [line 101] is longer than 80 characters and also longer than 120: it is 137;
+\item [line 107] is longer than 80 characters and also longer than 120: it is 147;
+\item [line 121] is longer than 80 characters: it is 117;
+\item [line 121] parameter\texttt{ctx} should be final;
+\item [line 121] parameter \texttt{context} should be final;
+\item [line 130] is longer than 80 characters: it is 91;
+\item [line 134] is longer than 80 characters: it is 110;
+\item [line 139] is longer than 80 characters and also longer than 120: it is 147;
+\item [line 141] is longer than 80 characters: it is 112;
+\item [line 166] is longer than 80 characters and also longer than 120: it is 128;
+\item [line 166] parameter\texttt{ctx} should be final;
+\item [line 166] parameter \texttt{context} should be final;
+\item [line 174] is longer than 80 characters: it is 101;
+\item [line 181] is longer than 80 characters: it is 114;
+\item [line 186] is longer than 80 characters: it is 84;
+\item [line 205] is longer than 80 characters and also longer than 120: it is 155;
+\item [line 206] is longer than 80 characters: it is 105;
+\item [line 206] the \texttt{+} is not preceded with whitespace;
+\item [line 209] is longer than 80 characters and also longer than 120: it is: 222;
+\item [line 209] the \texttt{<} is preceded with whitespace;
+\item [line 209] the \texttt{,} at 158 is not followed by whitespace;
+\item [line 209] the \texttt{,} at 172 is preceded with whitespace;
+\item [line 209] the \texttt{,} at 174 is not followed by whitespace;
+\item [line 210] is longer than 80 characters: it is 95;
+\item [line 211] is longer than 80 characters: it is 119;
+\item [line 213]is longer than 80 characters: it is 94;
+\item [line 214] is longer than 80 characters and also longer than 120: it is 134;
+\item [line 215] is longer than 80 characters and also longer than 120: it is 133;
+\item [line 216] is longer than 80 characters and also longer than 120: it is 133;
+\item [line 217] is longer than 80 characters and also longer than 120: it is 133;
+\item [line 218] is longer than 80 characters: it is 100;
+\item [line 220] is longer than 80 characters and also longer than 120: it is 138;
+\item [line 221] is longer than 80 characters and also longer than 120: it is 118;
+\item [line 222]is longer than 80 characters: it is 93;
+\item [line 225]is longer than 80 characters: it is 84;
+\item [line 229]is longer than 80 characters: it is 104;
+\item [line 229] the \texttt{+} is not preceded with whitespace;
+\item [line 230] is longer than 80 characters: it is 84;
+\item [line 259] is longer than 80 characters and also longer than 120: it is 128;
+\item [line 259] parameter\texttt{ctx} should be final;
+\item [line 259] parameter \texttt{context} should be final;
+\item [line 266] is longer than 80 characters and also longer than 120: it is 123;
+\item [line 267] is longer than 80 characters: it is 108;
+\item [line 268] is longer than 80 characters: it is 113;
+\item [line 269] is longer than 80 characters and also longer than 120: it is 156;
+\item [line 270] is longer than 80 characters and also longer than 120: it is 138;
+\item [line 272] is longer than 80 characters: it is 123;
+\item [line 272] the \texttt{+} is not preceded with whitespace;
+\item [line 284]is longer than 80 characters: it is 100;
+\item [line 284] the \texttt{+} is not preceded with whitespace;
+\item [line 287] is longer than 80 characters and also longer than 120: it is 137;
+\item [line 287] the \texttt{+} is not preceded with whitespace;
+\item [line 288] is longer than 80 characters and also longer than 120: it is 186;
+\item [line 289] is longer than 80 characters and also longer than 120: it is 166;
+
+\end{itemize}
+
+\end{comment}
+
+In the following list we will stress the discrepancy among the checklist in the appendix and the analyzed code.
+
+\begin{description}
+\item[7] Constant variables (declared as \texttt{static final}) are not described with upper cases: at line 51 \texttt{module} should be \texttt{MODULE} and at line 52 \texttt{resource} should be \texttt{RESOURCE};
+\item[12] At line 19, the \texttt{package} statement is not separate from the comment at the beginning; at line 53, the class variables declaration is not separated from the method signature;
+\item[13] The following lines are longer than 80 characters: 53, 57, 58, 62, 70, 73, 74, 75, 77, 78, 79, 83, 84, 85, 86, 87, 90, 91, 94, 101, 107, 121, 130, 134, 139, 141, 166, 174, 181, 186, 205, 206, 209, 210, 211, 213, 214, 215, 216, 217, 218, 220, 221, 222, 225, 229, 230, 259, 266, 267, 268, 269, 270, 272, 284, 287, 288, 289;
+\item[14] The following lines are longer than 120 characters: 62, 70, 74, 75, 77, 79, 83, 87, 91, 94, 101, 107, 139, 166, 205, 209, 214, 215, 216, 217, 220, 259, 266, 267, 270, 272, 287, 288, 289;
+\item[19] There are commented lines of code without expiration data, precisely at 58 and 74;
+\item[23] \emph{Javadoc} is poor, it is brief and not exhaustive; the \texttt{linkToProduct} method at line 53 has no \emph{Javadoc} at all, and not even the class variables;
+\item[27] The class itself is not very huge, but the methods inside, which mainly carry out a single task, are long and contain many nested loops and conditional blocks;
+\item[28] All the variables and methods are declared as \texttt{public}, but especially for internal variables, it is better to restrict the access through at least \texttt{protected} or even \texttt{private} clause;
+\item[42] Error messages are not so clear nor help very much to solve the error. The errors should have been explained more clearly. In particular, see lines 58, 74, 90;
+\item[52] Only \texttt{IOException} is caught among the most relevant ones. Possible exceptions raised by the \texttt{Integer.parseInt()} are not caught, see line 175;
+\item[53] Message errors are simply printed to the error console and a return action to a specific entity is taken, but no effective resolution nor recovery actions are supposed;
+
+\end{description}
+
+The other clauses are correct, in fact:
+
+\begin{description}
+\item[1] Variables and methods in the class have meaningful names; it is noticeable that some methods of others class, used by \texttt{ScrumServices}, have \emph{ambiguous} meanings (see section \vref{otherissues});
+\item[2] All one-character variables are used in temporary contexts;
+\item[3] The \texttt{ScrumServices} class is correctly written;
+\item[4] No \emph{interfaces} to analyze;
+\item[5] All the methods declared in the class comply to the name conventions;
+\item[6] All the variables comply to the name convention;
+\item[8] Always four spaces are used to indent the source code;
+\item[9] No \emph{tabs} are used to indent the code;
+\item[10] The \emph{Kernighan and Ritchie} style is adopted to delimit blocks by braces;
+\item[11] All the blocks, included the ones with only one statement, are surrounded by curly braces;
+\item[15] There are no wrapped lines, and it is bad due to the huge amount of very long lines (refer to points \emph{12} and \emph{13});
+\item[16] Unfortunately there are not wrapped lines;
+\item[17] Again, no wrapped lines to check;
+\item[18] Comments are used sparingly, however in key points they are present;
+\item[20] The Java source file of the class contains rightly only the \texttt{ScrumServices} class;
+\item[21] The \texttt{ScrumServices} class is the first appearing in the file;
+\item[22] No external \emph{interfaces} are implemented;
+\item[24] The \texttt{package} statement is the first appearing in the code after the \texttt{import}s;
+\item[25] The declarations order complies to the convention;
+\item[26] The class only contains four methods, thus the functional/scope/accessibility order is not so distinguishably different;
+\item[29] All the variables are declared in their proper scope;
+\item[30] Only constructors are used when a new object is needed;
+\item[31] All the objects are initialized before using them;
+\item[32] All the variables are initialized;
+\item[33] All the declarations appear at the beginning of blocks;
+\item[34] All the parameters are presented in the correct order;
+\item[35] No erroneous method is called due to misleading similar names;
+\item[36] Values returned by methods are used accordingly to the call;
+\item[37] No pure arrays are used in the code;
+\item[38] No problems regarding bounds in any of the collection;
+\item[39] Of course constructors are called when a new array item is needed;
+\item[40] There are no direct object comparisons;
+\item[41] Outputs are free of spelling and grammatical errors;
+\item[43] Outputs are correctly formatted;
+\item[44] No evidence of \emph{brutish programming};
+\item[45] Operator precedences, parenthesizing and computations are correct;
+\item[46] No ambiguous precedence expressions are found, so no parenthesis problem;
+\item[47] No arithmetical divisions in the code;
+\item[48] Integer arithmetic  operations are used properly;
+\item[49] All the comparison and boolean operators are correct;
+\item[50] Error conditions are legitimate;
+\item[51] The code is free of implicit type conversions;
+\item[54] No switch in the code;
+\item[55] No switch in the code;
+\item[56] All loops are correctly formed;
+\item[57] No files are employed;
+\item[58] No files are opened, then no file are closed;
+\item[59] No files are used, then no EOFs conditions;
+\item[60] No files presence, then no file exceptions to catch.
+ 
+\end{description}
+
+\section{Other issues}
+\label{otherissues}
+Some strings are used more than three times, thus it should be better to declare them as constant.
+Many arithmetic operators and punctuation are not surrounded by spaces on both sides.
+
+Some methods exploited by our class coming from other classes (e.g. \texttt{get(..)}, \texttt{use(..)}) do not specify what they do clearly in their names; in fact, names are very general: the only helpful hints to understand the meaning of the method come from the \texttt{String} parameters passed.
+The issue is probably due to the design approach, which claims to manage all the data through generic classes and this implies you to use different strings to specify what field you want to employ in the method.
+
+
+\chapter{Hours of work}
+
+\begin{center}
+    \begin{tabularx}{\columnwidth}{Xccc}
+        \toprule
+	   \textbf{Document} & \textbf{Marco [h]}& \textbf{Daniele [h]} &\textbf{Total [h]}\\
+	   \midrule
+        Requirements and Specifications Document&48&49.5&97.5\\ 
+        Design Document &35&40&75\\   
+        Integration Test Plan Document &26&22&48\\    
+        Project Plan Document &20&20&40\\   
+        Inspection Document &10&7&17\\   
+        Overall revision & -- & -- & --\\  
+        
+        \midrule
+        
+        \textbf{Total} & 139 & 138.5 & \textbf {277.5}\\
+        
+	\bottomrule
+    \end{tabularx}
+\end{center}
+\chapter{References}
+To draw up this document, we refer to the assignment about the Code Inspection Document provided in the lectures.
+
+\begin{appendix}
+
+\chapter{Checklist}
+
+\section*{Naming Conventions}
+\begin{enumerate}
+\item All class names, interface names, method names, class variables, method variables, and constants used should have meaningful names and do what the name suggests.
+\item If one-character variables are used, they are used only for temporary “throwaway” variables, such as those used in for loops.
+\item Class names are nouns, in mixed case, with the first letter of each word in capitalized.
+\item Interface names should be capitalized like classes.
+\item Method names should be verbs, with the first letter of each addition word capitalized.
+\item Class variables, also called attributes, are mixed case, but might begin with an underscore (`\texttt{\_}') followed by a lowercase first letter. All the remaining words in the variable name have their first letter capitalized.
+\item Constants are declared using all uppercase with words separated by an underscore.
+\end{enumerate}
+
+\section*{Indention}\begin{enumerate}[resume]
+\item Three or four spaces are used for indentation and done so consistently.
+\item No tabs are used to indent.
+\end{enumerate}
+
+\section*{Braces}\begin{enumerate}[resume]
+\item Consistent bracing style is used, either the preferred “Allman” style (first brace goes underneath the opening block) or the “Kernighan and Ritchie” style (first brace is on the same line of the instruction that opens the new block).
+\item All \texttt{if}, \texttt{while}, \texttt{do-while}, \texttt{try-catch}, and \texttt{for} statements that have only one statement to execute are surrounded by curly braces.
+\end{enumerate}
+
+\section*{File Organization}\begin{enumerate}[resume]
+\item Blank lines and optional comments are used to separate sections (beginning comments, package/import statements, class/interface declarations which include class variable/attributes declarations, constructors, and methods).
+\item Where practical, line length does not exceed 80 characters.
+\item When line length must exceed 80 characters, it does NOT exceed 120 characters.
+\end{enumerate}
+
+\section*{Wrapping Lines}\begin{enumerate}[resume]
+\item Line break occurs after a comma or an operator.
+\item Higher-level breaks are used.
+\item A new statement is aligned with the beginning of the expression at the same level as the previous line.
+\end{enumerate}
+
+\section*{Comments}\begin{enumerate}[resume]
+\item Comments are used to adequately explain what the class, interface, methods, and blocks of code are doing.
+\item Commented out code contains a reason for being commented out and a date it can be removed from the source file if determined it is no longer needed.
+\end{enumerate}
+
+\section*{Java Source Files}\begin{enumerate}[resume]
+\item Each Java source file contains a single public class or interface.
+\item The public class is the first class or interface in the file.
+\item External program interfaces are implemented consistently with what is described in the javadoc.
+\item Javadoc is complete (i.e., it covers all classes and files part of the set of classes assigned to you).
+\end{enumerate}
+
+\section*{Package and Import Statements}\begin{enumerate}[resume]
+\item If any package statements are needed, they should be the first non-comment statements. Import statements follow.
+\end{enumerate}
+
+\section*{Class and Interface Declarations}\begin{enumerate}[resume]
+\item The class or interface declarations shall be in the following order:
+	\begin{enumerate}
+		\item class/interface documentation comment;
+		\item class or interface statement;
+		\item class/interface implementation comment, if necessary;
+		\item class (static) variables;
+		\begin{enumerate}
+			\item first public class variables;
+			\item next protected class variables;
+			\item next package level (no access modifier);
+			\item last private class variables.
+		\end{enumerate}
+		\item instance variables;
+		\begin{enumerate}
+			\item first public instance variables;
+			\item next protected instance variables;
+			\item next package level (no access modifier);
+			\item last private instance variables.
+		\end{enumerate}
+		\item constructors;
+		\item methods.
+	\end{enumerate}
+	\item Methods are grouped by functionality rather than by scope or accessibility.
+	\item Check that the code is free of duplicates, long methods, big classes, breaking encapsulation, as well as if coupling and cohesion are adequate.
+\end{enumerate}
+
+\section*{Initialization and Declarations}\begin{enumerate}[resume]
+\item Variables and class members are of the correct type. Check that they have the right visibility (public/private/protected).
+\item Variables are declared in the proper scope.
+\item Constructors are called when a new object is desired.
+\item All object references are initialized before use.
+\item Variables are initialized where they are declared, unless dependent upon a computation.
+\item Declarations appear at the beginning of blocks (block: any code surrounded by curly braces `\texttt{\{}' and `\texttt{\}}'). The exception is a variable can be declared in a \texttt{for} loop.
+\end{enumerate}
+
+\section*{Method Calls}\begin{enumerate}[resume]
+\item Parameters are presented in the correct order.
+\item Check that the correct method is being called, or should it be a different method with a similar name.
+\item Method returned values are used properly.
+\end{enumerate}
+
+\section*{Arrays}\begin{enumerate}[resume]
+\item There are no off-by-one errors in array indexing (that is, all required array elements are correctly accessed through the index).
+\item All array (or other collection) indexes have been prevented from going out-of-bounds.
+\item Constructors are called when a new array item is desired.
+\end{enumerate}
+
+\section*{Object Comparison}\begin{enumerate}[resume]
+\item All objects (including \texttt{String}s) are compared with \texttt{equals} and not with \texttt{==}.
+\end{enumerate}
+
+\section*{Output Format}\begin{enumerate}[resume]
+\item Displayed output is free of spelling and grammatical errors.
+\item Error messages are comprehensive and provide guidance as to how to correct the problem.
+\item The output is formatted correctly in terms of line stepping and spacing.
+\end{enumerate}
+
+\section*{Computation, Comparisons and Assignments}\begin{enumerate}[resume]
+\item Implementation avoids “brutish programming”\footnote{See \url{http://users.csc.calpoly.edu/~jdalbey/SWE/CodeSmells/bonehead.html} for more information.}. 
+\item Check order of computation/evaluation, operator precedence and parenthesizing.
+\item Liberal use of parenthesis is used to avoid operator precedence problems.
+\item All denominators of a division are prevented from being zero.
+\item Integer arithmetic, especially division, is used appropriately to avoid causing unexpected truncation/rounding.
+\item Comparison and Boolean operators are correct.
+\item Check \texttt{try-catch} expressions, and check that the error condition is actually legitimate.
+\item Check that the code is free of any implicit type conversions.
+\end{enumerate}
+
+\section*{Exceptions}\begin{enumerate}[resume]
+\item Check that the most relevant exceptions are caught.
+\item Appropriate action are taken for each catch block.
+\end{enumerate}
+
+\section*{Flow of Control}\begin{enumerate}[resume]
+\item In a \texttt{switch} statement, check that all cases are addressed by break or return.
+\item All switch statements have a default branch.
+\item All loops are correctly formed, with the appropriate initialization, increment and termination expressions.
+\end{enumerate}
+
+\section*{Files}\begin{enumerate}[resume]
+\item All files are properly declared and opened.
+\item All files are closed properly, even in the case of an error.
+\item EOF conditions are detected and handled correctly.
+\item All file exceptions are caught and dealt with accordingly.
+\end{enumerate}
+
+\end{appendix}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
