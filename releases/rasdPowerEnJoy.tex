@@ -17,6 +17,11 @@
 %http://karlwiegers.com
 \documentclass{scrreprt}
 \usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  keepspaces=true,
+}
 \usepackage{underscore}
 \usepackage{booktabs}
 \usepackage{tabularx}
@@ -45,10 +50,10 @@
     linktoc=page            % only page is linked
 }%
 \def\myversion{1.0 }
-\def\version{1.0}
+\def\version{1.1}
 %\date{28/10/2016}
 \titlehead{\centering\includegraphics[width=6cm]{Logo_Politecnico_Milano.png}}
-\title{Requirements Analysis and Software Design\\for\\PowerEnJoy}
+\title{Requirements Analysis and Specifications Document\\for\\PowerEnJoy}
 \date{\today\\\bigskip version \version}
 \author{Daniele Riva\thanks{matr. 875154}\and Marco Sartini\thanks{matr. 877979}}
 \usepackage{hyperref}
@@ -87,7 +92,8 @@
         \toprule
 	   \textbf{ Name }& \textbf{ Date  }& \textbf{ Reason For Changes }& \textbf{ Version}\\
         \midrule
-	    Marco + Daniele & 28/10/2016 & Starting & 1.0\\
+	    Marco + Daniele & 13/11/2016 & Starting & 1.0\\
+		Marco + Daniele & 07/02/2017 & Final revision & 1.1\\
 	\bottomrule
     \end{tabular}
 \end{center}
@@ -190,7 +196,8 @@ The system, related to the company:
 \item Allows to check the status of the cars as a prospectus/summary;
 \item Allows the company to be notified if any {\itshape on-board system} detects a car failure;
 \item Allows to edit settings such as prices per minute, discounts amount, “etc.”;
-\item Allows the company to bill users for services they benefited.
+\item Allows the company to bill users for services they benefited;
+\item Allows to edit stored information as cars, Power Grid stations and Safe Areas.
 \end{enumerate}
 
 \begin{comment}$<$Summarize the major functions the product must perform or must let the user perform. Details will be provided in Section 3, so only a high level summary 
@@ -216,7 +223,7 @@ Certain requirements may pertain only to certain user classes. Distinguish the
 most important user classes for this product from those who are less important 
 to satisfy.$>$
 \end{comment}
-
+\begin{comment}
 \section{Operating Environment}
 \begin{comment}$<$Describe the environment in which the software will operate, including the hardware platform, operating system and versions, and any other software 
 components or applications with which it must peacefully coexist.$>$
@@ -301,6 +308,12 @@ example, in the vision and scope document or the project plan).$>$
 \chapter{External Interface Requirements}
 
 \section{User Interfaces}
+This is an example of a user interface screen for the mobile application.
+\begin{center}
+\includegraphics[width=.3\columnwidth]{./dd/mock/app2.png}
+\end{center}
+In this case, when looking for a car, the user should see a map with the available cars around his position or the provided address. The user should be able to type an address using a text input field, should be able to choose a car tapping on the related pin, should be able to to read the battery level of the car and its real position, and also other characteristics.
+The web interface should follow the app style, and show the information in a similar way, taking into account the fact that the web site could be consulted either on large PCs screen or on small smartphones screens.
 \begin{comment}$<$Describe the logical characteristics of each interface between the software 
 product and the users. This may include sample screen images, any GUI standards 
 or product family style guides that are to be followed, screen layout 
@@ -312,6 +325,9 @@ specification.$>$
 \end{comment}
 
 \section{Hardware Interfaces}
+A particular hardware component needed by this system is the on-board device to be put on the cars to guarantee the interaction between the cars and the central system.
+This component should implement the communication of the data collected by the car sensors to the central system and should implement an interface to receive the information from the central system.
+It may be based on the open source operating system Linux, adopting the more convenient distribution.
 \begin{comment}$<$Describe the logical and physical characteristics of each interface between 
 the software product and the hardware components of the system. This may include 
 the supported device types, the nature of the data and control interactions 
@@ -320,6 +336,8 @@ used.$>$
 \end{comment}
 
 \section{Software Interfaces}
+The system can be for the moment though as a client/server architecture with the user application as the client and the system logic as the server.
+To implement this kind of system, it is reasonable to develop it using the Java Enterprise Edition platform for the logic server and MySQL for the data management.
 \begin{comment}$<$Describe the connections between this product and other specific software 
 components (name and version), including databases, operating systems, tools, 
 libraries, and integrated commercial components. Identify the data items or 
@@ -333,6 +351,9 @@ implementation constraint.$>$
 \end{comment}
 
 \section{Communications Interfaces}
+Due to the evidence of the mobility feature, interaction with the system and the cars will have place over the Internet network, supported by the mobile phone-and-data network.
+Communications will adhere to a transportation protocol through the network which implement connection and confirmation features, as can be the TCP protocol.
+At the application layer the communication will stand on the HTTPS protocol.
 \begin{comment}$<$Describe the requirements associated with any communications functions 
 required by this product, including e-mail, web browser, network server 
 communications protocols, electronic forms, and so on. Define any pertinent 
@@ -1090,20 +1111,18 @@ Yosemite Sam, a management employee of the company, receives an order from his b
 \includegraphics[height=\textheight]{UMLPowerEnJoy.png}
 \end{center}
 
-\subsection{State diagram}
+\subsection{State and activity diagrams}
 \begin{center}
 \includegraphics[width=\columnwidth]{STDCarState.png}
-\end{center}
+
 \begin{comment}
 \begin{figure}
 \caption{}
 \includegraphics{}
 \end{figure}
 \end{comment}
-
-\subsection{Activity diagram}
-\begin{center}
-\includegraphics[height=\textheight]{activityDiag.pdf}
+\includegraphics[height=\textheight]{ActivityStateDiagramsRental.pdf}
+\includegraphics[height=\textheight]{ActivityStateDiagramsReservation.pdf}
 \end{center}
 
 \begin{comment}$<$Optionally, include any pertinent analysis models, such as data flow 
@@ -1113,13 +1132,13 @@ diagrams.$>$
 
 \subsection{Alloy model}
 
-\begin{verbatim}
+\begin{lstlisting}[breaklines]
 open util/boolean
 
 one sig Company{
 	cars: set Car,
 	safeAreas: set SafeArea,
-	users:set User // ?? Van messi ??
+	users:set User 
 }
 
 fact allUserBelongToCompany{
@@ -1448,10 +1467,10 @@ check allCarReservedAreUnavailable
 //No counterexample found. Assertion may be valid
 //No counterexample found. Assertion may be valid
 
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
-\includegraphics[height=\textheight]{activityDiag.pdf}
+\includegraphics[width=\columnwidth, angle=90, scale=2]{finalWorldAlloy.pdf}
 \end{center}
 
 \section{Appendix C: Work Hours}
@@ -1477,6 +1496,9 @@ check allCarReservedAreUnavailable
 	\bottomrule
     \end{tabular}
 \end{center}
+
+\section{Change log}
+On 07/02/2017 v1.1 we added the goal G16, we added the Interfaces specifications and we updated the activity and state diagrams.
 
 \begin{comment}
 \section{Appendix C: To Be Determined List}
