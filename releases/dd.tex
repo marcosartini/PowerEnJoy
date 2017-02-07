@@ -49,7 +49,7 @@
     linktoc=page            % only page is linked
 }%
 \def\myversion{1.0 }
-\def\version{1.0}
+\def\version{1.1}
 %\date{28/10/2016}
 \titlehead{\centering\includegraphics[width=6cm]{Logo_Politecnico_Milano.png}}
 \title{Design Document\\for\\PowerEnJoy}
@@ -67,11 +67,14 @@
 \section{Purpose}
 This Design Document document has the purpose to describe in detailed way the architecture of the system, the data structures, the user interface, the components.
 \section{Scope}
+This document is produced in the \emph{Power EnJoy} context, a project which aim is to implement an electric car sharing service supported by a mobile and a web application.
+\begin{comment}
 The project \emph{Power EnJoy}, which is a service based on mobile and web application, has some different targets of people:
 \begin{itemize}
 \item clients;
 \item employee;
 \end{itemize}
+\end{comment}
 \section{Definitions, acronyms, abbreviations}
 \begin{description}
 \item[RASD] requirements analysis and specification document;
@@ -82,6 +85,7 @@ The project \emph{Power EnJoy}, which is a service based on mobile and web appli
 \item[JSP] JavaServer Pages;
 \item[HTTPS] HyperText Transfer Protocol over Secure Socket Layer;
 \item[Apache Tomcat] is a Java Servlet Container;
+\item[DBMS] Data Base Management System;
 \end{description}
 \section{Reference documents}
 RASD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/master/releases/rasdPowerEnJoy.pdf}
@@ -99,6 +103,7 @@ RASD v1.0 available at \url{https://github.com/marcosartini/PowerEnJoy/blob/mast
 		\caption{Overview of the system architecture: layer division and tier identification.}
 		\label{layerTier}
 \end{figure}
+\begin{comment}
 The system is multi-tier, in fact it is composed by:
 \begin{itemize}
 \item the main logic element as the \emph{Application server};
@@ -106,6 +111,22 @@ The system is multi-tier, in fact it is composed by:
 \item data are managed and stored in a dedicated server as \emph{Database server} (this component is in charge of the data layer);
 \item a web-server is in charge to interact with the users who adopt the website solution and to interface with the application server;
 \item presentation layer is assigned to the mobile app, which interfaces directly with the application server, to the \emph{on-board application} which interfaces directly with the \emph{on-board system} and to the web browser which interfaces directly with the web server.
+\end{itemize}
+\end{comment}
+Analyzing the requirements of the system, we conclude that it is basically organized into three subsystems, and they refer to presentation layer, application layer and data layer.
+\begin{itemize}
+\item the \emph{presentation layer} will carry out the graphical interface between the user and the system; we consider at this layer, as interfaces, the mobile application, the website pages and the screens on the car display;
+\item the \emph{application layer} will carry out the logic of the system in the whole parts, that means it will react to user requests, it will compute the bills, it will manage the car status, it will execute the dynamic web pages of the website and whatever is is required to implement;
+\item the \emph{data layer} will carry out to store and maintain the data needed by the system to work.
+\end{itemize}
+
+Each of the three layer is composed by a set of elements to have a more efficient and specialized contribute from each one.
+The elements are basically physical tiers; the requirements analysis suggest us to adopt the following architecture, that in fact is a multi-tier one.
+\begin{itemize}
+\item data layer will be implemented by a standalone server machine, to better physically separate the application machine from the data machine, and so guaranteeing not to overcharge the application server in the managing of the data; moreover, it will simplify, in a futuristic view, the scalability of the data management without affect the application server.
+\item each car will contain a small amount of logic, because it is better to have some functions to be directly executed on the cars than always inquired to the application server; furthermore, the car need to be unlocked, and we delegate the car to verify the matching between the user code and the one associated to the rental It will elaborates the location information form the sensor.
+\item to promptly support and run the website, we decide to adopt a dedicated web server, specifically intended to manage the interactions on that side.
+\item hearth of the system, the principal tier related to the application layer: the main logic server. This \emph{Application server} will interact with the database server when needs to access the stored data or when it needs to deliver data to be stored; it will interact with the cars on-board systems and also with the mobile application and the website, to satisfy the computational tasks.
 \end{itemize}
 The \emph{external systems} icon symbolizes and reminds that the system relies on also other systems to carry out its tasks, such as the interaction with the Payment Handler system and the third party maps service.
 
@@ -140,7 +161,7 @@ The application server is composed by:
 
 A graphical description of the modules is showed below: 
 \begin{center}
-		\includegraphics[width=\textwidth]{./dd/componentInterfaces.pdf}
+		\includegraphics[width=\textwidth]{./dd/componentViewServer.pdf}
 \end{center}
 
 \subsection{On-board car system}
@@ -163,7 +184,14 @@ The web server interfaces with the application server to proper get the informat
 \section{Deployment view}
 
 \begin{center}
-	\includegraphics[height=\textheight]{./dd/DeploymentView.pdf}
+	\includegraphics[height=\textheight]{./dd/DeploymentViewGen.pdf}
+\end{center}
+
+
+A possible choice of implementation could be the following: 
+
+\begin{center}
+	\includegraphics[height=0.9\textheight]{./dd/DeploymentView.pdf}
 \end{center}
 
 \section{Runtime view}
@@ -179,6 +207,7 @@ This sequence diagram exposes the registration process of a new user.
 %		\label{regSD}
 %\end{figure}
 \end{center}
+\newpage
 \subsection{Login}
 This sequence diagram exposes the login process of a user or an employee.
 \begin{center}
@@ -189,6 +218,7 @@ This sequence diagram exposes the login process of a user or an employee.
 	%	\label{logSD}
 %\end{figure}
 \end{center}
+\newpage
 \subsection{Car selection}
 This sequence diagram exposes the process related to the selection of a car by a user.
 \begin{center}
@@ -199,7 +229,7 @@ This sequence diagram exposes the process related to the selection of a car by a
 %		\label{chcarSD}
 %\end{figure}
 \end{center}
-
+\newpage
 \subsection{Car reservation}
 This sequence diagram exposes the car reservation process actuated by a user.
 \begin{center}
@@ -216,7 +246,7 @@ This sequence diagram exposes process related to a car rental without reservatio
 \begin{center}
 %\begin{figure}[h]
 %\centering
-		\includegraphics[width=\textwidth, height=\textheight]{./dd/startRentalInteraction.pdf}
+		\includegraphics[width=\textwidth, height=0.85\textheight]{./dd/startRentalInteraction.pdf}
 %		\caption{Sequence diagram: car rental.}
 	%	\label{rentSD}
 %\end{figure}
@@ -227,7 +257,7 @@ This sequence diagram exposes the \emph{keep aside} process actuated by a user.
 \begin{center}
 %\begin{figure}[h]
 %\centering
-		\includegraphics[width=\textwidth]{./dd/keepAsideInteraction.pdf}
+		\includegraphics[width=\textwidth,height=0.9\textheight]{./dd/keepAsideInteraction.pdf}
 	%	\caption{Sequence diagram: car keep aside.}
 	%	\label{keepSD}
 %\end{figure}
@@ -238,7 +268,7 @@ These sequence diagrams expose the processes involved when an issue occurs and t
 \begin{center}
 %\begin{figure}[h]
 %\centering
-		\includegraphics[width=\textwidth]{./dd/reportIssueInteractionUser.pdf}
+		\includegraphics[width=\textwidth,height=0.4\textheight]{./dd/reportIssueInteractionUser.pdf}
 	%	\caption{Sequence diagram: the user reports an issue.}
 	%	\label{userIssSD}
 %\end{figure}
@@ -246,18 +276,18 @@ These sequence diagrams expose the processes involved when an issue occurs and t
 \begin{center}
 %\begin{figure}[h]
 %\centering
-		\includegraphics[width=\textwidth]{./dd/reportIssueInteractionMaintenance.pdf}
+		\includegraphics[width=\textwidth,height=0.45\textheight]{./dd/reportIssueInteractionMaintenance.pdf}
 	%	\caption{Sequence diagram: the maintenance employee solves an issue.}
 	%	\label{empIssSD}
 %\end{figure}
 \end{center}
-
+\newpage
 \subsection{End rental and payment}
 This sequence diagram exposes the how the end of a rental process works and how the payment is handled.
 \begin{center}
 %\begin{figure}[h]
 %\centering
-		\includegraphics[width=\textwidth]{./dd/endRentalAndPaymentInteraction.pdf}
+		\includegraphics[width=\textwidth,height=0.9\textheight]{./dd/endRentalAndPaymentInteraction.pdf}
 	%	\caption{Sequence diagram: the end of a rental and its payment.}
 	%	\label{endSD}
 %\end{figure}
@@ -265,9 +295,11 @@ This sequence diagram exposes the how the end of a rental process works and how 
 
 \section{Component interfaces}
 This section lists the interfaces between components.
-
+\begin{center}
+		\includegraphics[width=\textwidth]{./dd/ComponentInterface.pdf}
+\end{center}
 \subsection{Application and Database}
-The application server interact with the database server supported by the Java Persistence API.
+The application server interact with the database server supported by the DataManager, which is a component intended to properly show an high level interface to the database.
 
 \subsection{Application and Web server}
 Direct communications with the web server are based over RESTful APIs served by the Application server. These APIs are implemented in JAX-RS.
@@ -285,9 +317,8 @@ The Application server (in particular the PaymentManager module) interfaces with
 \subsubsection{CarsManager}
 \begin{description}
 \item[checkAvailability(car:Car): boolean] this procedure checks if a car is available to be used or not; it wants as parameter a car; as return value a boolean that indicates the result of the check.
-\item[setUnavailable(car:Car)] this procedure sets unavailable a car; it wants as parameter a car and it is a void procedure, it modifies the value of the car.
-\item[setAvailable(car:Car)] this procedure sets a car available; it wants as parameter a car and it is a void procedure. It modifies the value of the car.
 \item[setState(car:Car, state:State)] this procedure sets the State of the car; it wants as parameters a car and it is a void procedure, it modifies the value of the car. The State of the car can assume the values indicate in the Car State Diagram.
+\item[getState(car:Car): State] this method returns the current state of the car received as parameter.
 \end{description}
 
 \subsubsection{ReservationManager}
@@ -296,7 +327,7 @@ The Application server (in particular the PaymentManager module) interfaces with
 \item[getReservation(user:User): List$<$Reservation$>$] this procedure returns the list of reservation about the user passed as parameters; it wants as parameter a user and as return value a list of reservations;
 \item[getReservation(car:Car): List$<$Reservation$>$] this procedure returns the list of reservations about the car passed  as parameter; it wants as parameter a car and as return value a list of reservations;
 \item[startTimeout(res:Reservation)] this procedure triggers the timer to compute one hour from when the reservation is started; it wants as parameter a reservation; it is a void procedure, there is not a return value.
-\item[setEndReservation(res:Reservation)] this procedure sets the value of the attribute endTime to the current time; it wants as parameter a reservation; it is a void procedure, there is not a return value.
+\item[endReservation(res:Reservation)] this procedure sets the value of the attribute endTime to the current time; it wants as parameter a reservation; it is a void procedure, there is not a return value.
 \end{description}
 
 \subsubsection{RentalManager}
@@ -306,8 +337,8 @@ The Application server (in particular the PaymentManager module) interfaces with
 \item[getRental(user:User): List$<$Rental$>$] this procedure returns the list of rentals about the user passed as parameter; it wants as parameter a user and as return value a list of rentals;
 \item[getRental(car:Car): List$<$Rental$>$] this procedure returns the list of rentals about the car passed as parameter; it wants as parameter a car and as return value a list of rentals;
 \item[generateUnlockCode(): String] this procedure generates a code to unlock the car; the user will use this code when he will be nearby the car; it wants no parameters and as return value a String corresponding the unlock code.
-\item[setStartRental(rent:Rental)] this procedure sets the value of startTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
-\item[setEndRental(rent:Rental)] this procedure sets the value of endTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
+\item[startRental(rent:Rental)] this procedure sets the value of startTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
+\item[endRental(rent:Rental)] this procedure sets the value of endTime to the current time; it wants as parameter a rental; it is a void procedure, there is not a return value.
 \item[checkKeepAsideOnGoing(rent:Rental):boolean] this procedure checks if there are keepAsides ongoing in a rental: if duration of a keepaside is greater than 3 hours or the endTime is not NULL, keepaside is ended; it wants as parameter a rental and as return value a boolean indicates the result of the check.
 \item[assignDiscount(rent:Rental):List$<$Discount$>$] this procedure checks which discounts and overcharges can be applied to a rental and adds them to a list; then it splits the list, holding only the minimum (best discount) and maximum value (worst overcharge). The procedure wants as parameter a rental and return value is a list containing all discounts and overcharges to be applied.
 \end{description}
@@ -323,7 +354,7 @@ The Application server (in particular the PaymentManager module) interfaces with
 
 \begin{description}
 \item[addKeepAside(rent:Rental)] this procedure creates and adds a new keepaside to a rental; before, the user must have already rented a car and the rental has not to be finished yet. It wants as parameter a rental; it is a void procedure, there is not a return value.
-\item[setStartKeepAside(kept:KeepAside)] this procedure sets the value of startTime to the current time; it wants as parameter a keepAside; it is a void procedure, there is not a return value.
+\item[startKeepAside(kept:KeepAside)] this procedure sets the value of startTime to the current time; it wants as parameter a keepAside; it is a void procedure, there is not a return value.
 \item[stopKeepAside(kept:KeepAside) : Integer] this procedure sets the value of endTime to the current time and computes the duration of the keep aside; it wants as parameter a keepAside and as return value the duration of the keepAside.
 \end{description}
 
@@ -332,10 +363,11 @@ The Application server (in particular the PaymentManager module) interfaces with
 \begin{description}
 \item[checkCode(userCode:String): boolean] this procedure checks if the code generated early by application and the code used by user match. It wants as parameters  a String corresponding the code and as return value a boolean indicates the result of the check.
 
-\item[lockDoors()] this procedure communicates with the control unit of the car and which locks the doors; it has no parameters.
-\item[unlockDoors()] this procedure communicates with the control unit of the car and which unlocks the doors; it has no parameters.
-\item[checkNobodyInCar() :boolean] this procedure communicates with the control unit of the car which checks if there is somebody into the car. It has no parameters and as return value a boolean indicates result of the check.
+\item[setLockDoors(state: boolean)] this procedure communicates with the control unit of the car, which locks the doors if the received state is true, and unlocks them if the state received is false.
+
+\item[checkNobodyInCar():boolean] this procedure communicates with the control unit of the car which checks if there is somebody into the car. It has no parameters and as return value a boolean indicates result of the check.
 \item[checkEngine():boolean] this procedure communicates with control unit of the car which checks if engine is running or not. As return value a boolean indicates result of the check. (True=engine on, False=engine off);
+\item[setUnlockCode(code: String)] this method sets the unlock code on the car as the parameter code received.
 \end{description}
 
 \subsubsection{UserManager}
@@ -346,6 +378,7 @@ The Application server (in particular the PaymentManager module) interfaces with
 \item[generatePassword() :String] this procedure generates a password for a user; password must be different for each user. It has no parameters and return value is a String corresponding the password generated.
 \item[verifyAlreadyRegistered (cf,mail: String) : boolean] this procedure checks if some of user data (cf and mail ) are different for each user otherwise user cannot be registered. This procedure wants as parameters two different Strings corresponding to user's cf and mail. The return value is a boolean which indicates the result of the check.
 \item[verify (driverLicense, codeAccount :String ) : boolean] this procedure checks if some of user data (driverLicense and codeAccount ) are valid and correct otherwise user cannot be registered. This procedure wants as parameters two different Strings corresponding to the user's drivereLicense and codeAccount. The return value is a boolean which indicates the result of the check.
+\item[setBusy(user:User, state: boolean)] this method sets the user state complying the received state parameter; the parameter must be true for set the user busy, false otherwise.
 \end{description}
 
 \subsubsection{PaymentManager}
@@ -354,19 +387,22 @@ The Application server (in particular the PaymentManager module) interfaces with
 \item[computeKeepAsidesPrice(rent:Rental) :double] this procedure computes the price of all keepAsides of a over rental: sum all duration of each keepAside and computes the total price. The procedure wants as parameter a rental and return value is the price computed.
 \item[computTotalPrice(rent:Rental) :double] this procedure computes the total price of a over rental considering discounts and keepAsides: sum prices of rental and keepasides then applies discounts and overcharges. The procedure wants as parameter a rental and return value is the total price computed.
 \item[getCurrentCharging(rent:Rental) :double] this procedure computes the total price of a ongoing rental (from the startTime to the current time) non considering discounts but keepAsides: sum prices of rental and keepasides. The procedure wants as parameter a rental and return value is the total price computed.
+\item[addBill(price: double, rent: Rental)] this method generates a bill related to the rental received as parameter with the price received as parameter, and adds it to the database. 
 \end{description}
 
 \subsubsection{IssueManager}
 \begin{description}
 \item[addIssue(user:User, car:Car, descritpion:String, phoneNumber: String)] this procedure creates and adds a new issue to the list of all issues. It wants as parameters the car with the issue and the user who is reporting the issue, and also his phone number and a description of the issue; it's a void procedure, there isn't a return value;
-\item[setIssueIsSolving(issue:Issue,man:Maintenance)] this procedure modifies the issue status to specify that it is on a solving phase. The procedure wants as parameters an issue and a maintenance man. This is a void procedure, then no return value is defined;
-\item[setIssueSolved(issue:Issue, man:Maintenance)] this procedure modifies the issue status to specify that it has been solved. The procedure wants as parameters an issue and a maintenance man. This is a void procedure, then no return value is defined;
+\item[setIssueState(issue:Issue,man:Maintenance, state: IssueState)] this procedure modifies the issue status according to the one received as parameter. The procedure wants as parameters an issue and a maintenance man and a issue status. This is a void procedure, then no return value is defined;
 \end{description}
 
 \subsubsection{SettingManager}
 \begin{description}
 \item[modifyPriceRental(price:Float)] this procedure modifies the current rental price to the value received as parameter. The parameter required is a float number complying the currency of the whole system. This procedure has return type void.
 \item[modifyPriceKeepAside(price:Float)] this procedure modifies the current \emph{keep aside} price to the value received as parameter. The parameter required is a float number complying the currency of the whole system. This procedure has return type void.
+\item[updateCar(car:Car, newCar: Car)] this procedure update the current car information related to the received parameter car to the value received by the newCar parameter. The parameter required are a car and another car representing the same car as before with some attributes edited. This procedure has return type void.
+\item[updatePowerGridStation(pw:PowerGridStation, newPw: PowerGridStation)] this procedure update the current power grid station information related to the received parameter pw to the value received by the newPw parameter. The parameter required are a power grid station and another power grid station representing the same power grid station as before with some attributes edited. This procedure has return type void.
+\item[updateSafeArea(sa:SafeArea, newSa: SafeArea)] this procedure update the current safe area information related to the received parameter sa to the value received by the newSa parameter. The parameter required are a safe area and another safe area representing the same power grid station as before with some attributes edited. This procedure has return type void.
 \end{description}
 
 \section{Selected architectural styles and pattern}
@@ -596,6 +632,10 @@ G15. Allows the company to bill users for services they benefited:
 \begin{itemize}
 \item PaymentManager
 \end{itemize}
+G16. Allows to edit stored information as cars, Power Grid stations and Safe Areas:
+\begin{itemize}
+\item SettingsManager
+\end{itemize}
 
 
 \chapter{Effort spent}
@@ -611,6 +651,8 @@ G15. Allows the company to bill users for services they benefited:
 \end{center}
 \chapter{References}
 To draw up this document, we refer to the sample Design Documents provided in the lectures.
+\chapter{Change log}
+On 07/02/2017 we updated the deployment view diagram, the component interfaces diagram, the architecture description. We corrected the names of the method in the components accordingly with the edited names in the other documents.
 \end{document}
 
 
